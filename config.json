@@ -1,0 +1,41 @@
+{
+    "google": {
+        "auth_uri":"https://accounts.google.com/o/oauth2/auth",
+        "token_uri":"https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
+        "redirect_uris":["http://localhost:5050/youtube/callback"],
+        "scopes": [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/youtube",
+            "https://www.googleapis.com/auth/youtube.force-ssl",
+            "https://www.googleapis.com/auth/youtubepartner",
+            "https://www.googleapis.com/auth/youtube.upload",
+            "https://www.googleapis.com/auth/youtube.readonly"
+        ]
+    },
+    "spotify": {
+        "redirect_uris":["http://localhost:5050/spotify/callback"],
+        "scopes": [
+            "ugc-image-upload",
+            "user-read-playback-state",
+            "user-modify-playback-state",
+            "user-read-currently-playing",
+            "streaming",
+            "app-remote-control",
+            "user-read-email",
+            "user-read-private",
+            "playlist-read-collaborative",
+            "playlist-modify-public",
+            "playlist-read-private",
+            "playlist-modify-private",
+            "user-library-modify",
+            "user-library-read",
+            "user-top-read",
+            "user-read-playback-position",
+            "user-read-recently-played",
+            "user-follow-read",
+            "user-follow-modify"
+        ]
+    }
+}
