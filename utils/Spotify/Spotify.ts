@@ -4,50 +4,41 @@ import SpotifyWebApi from "spotify-web-api-node";
 import Song from "../songs/Song";
 
 export default class Spotify {
-    private spotifyApi: SpotifyWebApi;
+    public spotifyApi: SpotifyWebApi;
 
     constructor(authData: AuthData) {
         this.spotifyApi = new SpotifyWebApi({
-            clientId: authData.oauthClient,
-            accessToken: authData.oauthToken,
-            redirectUri: authData.redirectUri,
+            clientId: authData.clientId,
+            clientSecret: authData.clientSecret,
+            redirectUri: authData.redirectUri
         });
     }
 
     async getAuthToken(code: string): Promise<string | Error> {
-        try {
-            const data = await this.spotifyApi.authorizationCodeGrant(code);
-            const spotify_token = data.body["access_token"];
-            const refresh_token = data.body["refresh_token"];
-            const expires_in = data.body["expires_in"];
-
-            this.spotifyApi.setAccessToken(spotify_token);
-            this.spotifyApi.setRefreshToken(refresh_token);
-
-            console.log(
-                `Successfully retrieved access token. Expires in ${expires_in} s.`
-            );
-
-            setInterval(async () => {
-                try {
-                    const tokenData =
-                        await this.spotifyApi.refreshAccessToken();
-                    const newAccessToken = tokenData.body["access_token"];
-                    console.log("The access token has been refreshed!");
-                    this.spotifyApi.setAccessToken(newAccessToken);
-                } catch (refreshError) {
-                    console.error(
-                        "Error refreshing access token:",
-                        refreshError
-                    );
-                }
-            }, (expires_in / 2) * 1000);
-
-            return spotify_token;
-        } catch (error) {
-            console.error("Error getting tokens:", error);
-            throw error;
-        }
+        const data = await this.spotifyApi.authorizationCodeGrant(code);
+        const spotify_token = data.body["access_token"];
+        const refresh_token = data.body["refresh_token"];
+        const expires_in = data.body["expires_in"];
+        this.spotifyApi.setAccessToken(spotify_token);
+        this.spotifyApi.setRefreshToken(refresh_token);
+        console.log(
+            `Successfully retrieved access token. Expires in ${expires_in} s.`
+        );
+        setInterval(async () => {
+            try {
+                const tokenData =
+                    await this.spotifyApi.refreshAccessToken();
+                const newAccessToken = tokenData.body["access_token"];
+                console.log("The access token has been refreshed!");
+                this.spotifyApi.setAccessToken(newAccessToken);
+            } catch (refreshError) {
+                console.error(
+                    "Error refreshing access token:",
+                    refreshError
+                );
+            }
+        }, (expires_in / 2) * 1000);
+        return spotify_token;
     }
 
     getPlaylistTitle = async (playlistId: string): Promise<string> => {
