@@ -1,26 +1,21 @@
 import express, { Express, Request, Response, Application } from "express";
 import dotenv from "dotenv";
-import config from "./config.json"
+import config from "./utils/config.json"
 import Spotify from "./utils/Spotify/Spotify"
+import Youtube from "./utils/Youtube/Youtube"
 import AuthData from "./utils/AuthData";
-//For env File
 dotenv.config();
 
 const app: Application = express();
 const port = process.env.PORT || 8000;
 const spotify_scopes = config.spotify.scopes;
-const authData: AuthData = {
-    clientId: process.env.CLIENT_ID_SPOTIFY,
-    clientSecret: process.env.CLIENT_SECRET_SPOTIFY,
-    redirectUri: config.spotify.redirect_uris[0],
-}
-const spotify = new Spotify(authData);
 
+const spotify = new Spotify();
+const youtube = new Youtube();
 //  ================== Spotify APIs ======================
 
 app.get('/spotify/login', (req, res) => {
-    console.log(authData)
-    res.redirect(spotify.spotifyApi.createAuthorizeURL(spotify_scopes, ""));
+    res.redirect(spotify.myAuthData.spotifyApi.createAuthorizeURL(spotify_scopes, ""));
 });
 
 app.get('/spotify/callback', async (req, res) => {
@@ -34,6 +29,41 @@ app.get('/spotify/callback', async (req, res) => {
         throw error;
     }
 });
+
+app.get('/api/spotify/playlistTitle/:playlistId', async(req, res) =>{
+    try {
+        const playlistId: string = req.params.playlistId;
+        const title: string = await spotify.getPlaylistTitle(playlistId);
+        res.json(title)
+    } catch (error: any) {
+        console.error("Error fetching playlist title:", error.message);
+        throw error;
+    }
+});
+
+app.get('/api/spotify/playlist/:playlistId', async(req, res) =>{
+    try {
+        const playlistId: string = req.params.playlistId;
+        const songs = await spotify.getPlaylistSongs( playlistId)
+        res.json(songs)
+    } catch (error: any) {
+        console.error("Error fetching playlist title:", error.message);
+        throw error;
+    }
+});
+
+app.post('/api/spotify/create-playlist', async (req,res) => {
+    try {
+        const playlistId = await spotify.createPlaylist("Marcel Te Vede");
+        res.json(playlistId)
+    } catch (error) {
+        console.log("Failed to create or retrieve playlist", error);
+        throw error;
+    }
+})
+
+//  ================== Spotify APIs ======================
+
 
 app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);

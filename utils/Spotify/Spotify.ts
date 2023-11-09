@@ -1,36 +1,47 @@
+import SpotifyWebApi from "spotify-web-api-node";
 import Playlist from "../songs/Playlist";
 import AuthData from "../AuthData";
-import SpotifyWebApi from "spotify-web-api-node";
 import Song from "../songs/Song";
+import dotenv from "dotenv";
+import config from "../config.json"
+dotenv.config();
+
+type MyAuthData = Omit<AuthData, "youtubeApi">
 
 export default class Spotify {
-    public spotifyApi: SpotifyWebApi;
+    myAuthData : MyAuthData;
+    constructor() {
+        this.myAuthData = {
+            clientId: process.env.CLIENT_ID_SPOTIFY || '',
+            clientSecret: process.env.CLIENT_SECRET_SPOTIFY || '',
+            redirectUri: config.spotify.redirect_uris[0],
+            spotifyApi: new SpotifyWebApi() as SpotifyWebApi,
+        };
 
-    constructor(authData: AuthData) {
-        this.spotifyApi = new SpotifyWebApi({
-            clientId: authData.clientId,
-            clientSecret: authData.clientSecret,
-            redirectUri: authData.redirectUri
+        this.myAuthData.spotifyApi = new SpotifyWebApi({
+            clientId: this.myAuthData.clientId,
+            clientSecret: this.myAuthData.clientSecret,
+            redirectUri: this.myAuthData.redirectUri
         });
     }
 
     async getAuthToken(code: string): Promise<string | Error> {
-        const data = await this.spotifyApi.authorizationCodeGrant(code);
+        const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(code);
         const spotify_token = data.body["access_token"];
         const refresh_token = data.body["refresh_token"];
         const expires_in = data.body["expires_in"];
-        this.spotifyApi.setAccessToken(spotify_token);
-        this.spotifyApi.setRefreshToken(refresh_token);
+        this.myAuthData.spotifyApi.setAccessToken(spotify_token);
+        this.myAuthData.spotifyApi.setRefreshToken(refresh_token);
         console.log(
             `Successfully retrieved access token. Expires in ${expires_in} s.`
         );
         setInterval(async () => {
             try {
                 const tokenData =
-                    await this.spotifyApi.refreshAccessToken();
+                    await this.myAuthData.spotifyApi.refreshAccessToken();
                 const newAccessToken = tokenData.body["access_token"];
                 console.log("The access token has been refreshed!");
-                this.spotifyApi.setAccessToken(newAccessToken);
+                this.myAuthData.spotifyApi.setAccessToken(newAccessToken);
             } catch (refreshError) {
                 console.error(
                     "Error refreshing access token:",
@@ -42,34 +53,25 @@ export default class Spotify {
     }
 
     getPlaylistTitle = async (playlistId: string): Promise<string> => {
-        try {
-            const playlist = await this.spotifyApi.getPlaylist(playlistId);
-            const playlistTitle = playlist.body.name;
-            return playlistTitle;
-        } catch (error: any) {
-            console.error("Error fetching playlist title:", error.message);
-            throw error;
-        }
+        const playlist = await this.myAuthData.spotifyApi.getPlaylist(playlistId);
+        const playlistTitle = playlist.body.name;
+        return playlistTitle;
     };
 
     createPlaylist = async (playlistTitle: string): Promise<String> => {
-        try {
-            const playlistData = await this.spotifyApi.createPlaylist(
-                playlistTitle,
-                { description: "Youtube Playlist", public: true }
-            );
-            const spotifyPlaylistId = playlistData.body.id;
-            console.log("Created playlist with ID:", spotifyPlaylistId);
-            return spotifyPlaylistId; // Return the playlist ID if needed
-        } catch (error) {
-            console.log("Failed to create or retrieve playlist", error);
-            throw error;
-        }
+        const playlistData = await this.myAuthData.spotifyApi.createPlaylist(
+            playlistTitle,
+            { description: "Youtube Playlist", public: true }
+        );
+        const spotifyPlaylistId = playlistData.body.id;
+        console.log("Created playlist with ID:", spotifyPlaylistId);
+        return spotifyPlaylistId; // Return the playlist ID if needed
+
     };
 
     searchSongs = async (song: Song): Promise<string> => {
         try {
-            const songs = await this.spotifyApi.searchTracks(
+            const songs = await this.myAuthData.spotifyApi.searchTracks(
                 `${song.track} ${song.artist}`
             );
             // console.log(`Search tracks by "${track}" in the track name and "${artist}" in the artist name`);
@@ -93,7 +95,7 @@ export default class Spotify {
                 batches.push(songs.slice(i, i + maxSongsPerRequest));
             }
             for (const batch of batches) {
-                await this.spotifyApi.addTracksToPlaylist(playlistId, batch);
+                await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, batch);
                 console.log("Added songs to playlist!");
             }
             const updatedPlaylists: Playlist[] = batches.map((batch) => ({
@@ -114,14 +116,14 @@ export default class Spotify {
             const maxResults = 100;
             let offset = 0;
             let hasSongs = true; // Set initially to true to start the loop
-            const playlistTracks = await this.spotifyApi.getPlaylistTracks(playlistId, {
+            const playlistTracks = await this.myAuthData.spotifyApi.getPlaylistTracks(playlistId, {
                 fields: 'total',
               });
             const playlistLength = playlistTracks.body.total;
 
             do {
                 const playlistTracksData =
-                    await this.spotifyApi.getPlaylistTracks(playlistId, {
+                    await this.myAuthData.spotifyApi.getPlaylistTracks(playlistId, {
                         offset,
                         limit: maxResults,
                         fields: "items(track(name,artists(name)))",
