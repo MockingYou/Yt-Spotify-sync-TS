@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import config from "../config.json"
 dotenv.config();
 
-type MyAuthData = Omit<AuthData, "youtubeApi">
+type MyAuthData = Omit<AuthData, "youtubeApi" | "youtubeToken">
 
 export default class Spotify {
     myAuthData : MyAuthData;
@@ -16,6 +16,7 @@ export default class Spotify {
             clientSecret: process.env.CLIENT_SECRET_SPOTIFY || '',
             redirectUri: config.spotify.redirect_uris[0],
             spotifyApi: new SpotifyWebApi() as SpotifyWebApi,
+            spotifyToken: ""
         };
 
         this.myAuthData.spotifyApi = new SpotifyWebApi({
@@ -27,13 +28,13 @@ export default class Spotify {
 
     async getAuthToken(code: string): Promise<string | Error> {
         const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(code);
-        const spotify_token = data.body["access_token"];
-        const refresh_token = data.body["refresh_token"];
-        const expires_in = data.body["expires_in"];
-        this.myAuthData.spotifyApi.setAccessToken(spotify_token);
-        this.myAuthData.spotifyApi.setRefreshToken(refresh_token);
+        const spotifyToken = data.body["access_token"];
+        const refreshToken = data.body["refresh_token"];
+        const expiresIn = data.body["expires_in"];
+        this.myAuthData.spotifyApi.setAccessToken(spotifyToken);
+        this.myAuthData.spotifyApi.setRefreshToken(refreshToken);
         console.log(
-            `Successfully retrieved access token. Expires in ${expires_in} s.`
+            `Successfully retrieved access token. Expires in ${expiresIn} s.`
         );
         setInterval(async () => {
             try {
@@ -48,8 +49,9 @@ export default class Spotify {
                     refreshError
                 );
             }
-        }, (expires_in / 2) * 1000);
-        return spotify_token;
+        }, (expiresIn / 2) * 1000);
+        this.myAuthData.spotifyToken = spotifyToken;
+        return spotifyToken;
     }
 
     getPlaylistTitle = async (playlistId: string): Promise<string> => {

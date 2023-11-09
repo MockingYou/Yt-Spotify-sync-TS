@@ -6,5 +6,7 @@ export default interface AuthData {
     clientSecret: string,
     spotifyApi: SpotifyWebApi,
     youtubeApi: OAuth2Client,
-    redirectUri: string
+    redirectUri: string,
+    spotifyToken: string,
+    youtubeToken: string | null | undefined 
 }
