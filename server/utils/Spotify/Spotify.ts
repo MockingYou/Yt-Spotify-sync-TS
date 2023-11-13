@@ -26,7 +26,7 @@ export default class Spotify {
         });
     }
 
-    async getAuthToken(code: string): Promise<string | Error> {
+    getAuthToken = async (code: string): Promise<string | Error> => {
         const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(code);
         const spotifyToken = data.body["access_token"];
         const refreshToken = data.body["refresh_token"];
@@ -116,7 +116,7 @@ export default class Spotify {
             throw error;
         }
     };
-    async getPlaylistSongs(playlistId: string): Promise<Array<Song> | Error> {
+    getPlaylistSongs = async (playlistId: string): Promise<Array<Song> | Error> => {
         try {
             const allSongs: Array<Song> = [];
             const maxResults = 100;
