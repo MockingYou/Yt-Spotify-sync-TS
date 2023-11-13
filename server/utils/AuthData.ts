@@ -8,5 +8,6 @@ export default interface AuthData {
     youtubeApi: OAuth2Client,
     redirectUri: string,
     spotifyToken: string,
-    youtubeToken: string | null | undefined 
+    youtubeToken: string | null | undefined,
+    youtubeApiKey?: string 
 }

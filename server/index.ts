@@ -62,6 +62,30 @@ app.post('/api/spotify/create-playlist', async (req,res) => {
     }
 })
 
+app.post('/api/spotify/add-songs/:playlistId', async (req, res) => {
+    try {
+        const ytPlaylistId: string = req.params.playlistId;
+        const songs = await youtube.getTotalSongs(ytPlaylistId)
+        let searchArray = []
+
+        console.log("=================================")
+        console.log(songs)
+        for(const song of songs) {
+            try {
+                const searchedSong = await spotify.searchSongs(song);
+                searchArray.push(searchedSong);
+              } catch (error) {
+                console.log('Error searching song:', error);
+              }
+        }
+        await spotify.addSongsToPlaylist(ytPlaylistId, songs);
+
+    } catch (error) {
+        console.log("Failed to create or retrieve playlist", error);
+        throw error;
+    }
+})
+
 //  ================== Spotify APIs ======================
 
 

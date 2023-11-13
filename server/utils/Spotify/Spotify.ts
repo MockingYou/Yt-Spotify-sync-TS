@@ -68,7 +68,6 @@ export default class Spotify {
         const spotifyPlaylistId = playlistData.body.id;
         console.log("Created playlist with ID:", spotifyPlaylistId);
         return spotifyPlaylistId; // Return the playlist ID if needed
-
     };
 
     searchSongs = async (song: Song): Promise<string> => {
@@ -87,34 +86,39 @@ export default class Spotify {
 
     addSongsToPlaylist = async (
         playlistId: string,
-        songs: string[]
-    ): Promise<Playlist[] | Error> => {
+        songs: Array<Song>
+    ): Promise<void> => {
+    // ): Promise<Playlist | Error> => {
+
         try {
             const maxSongsPerRequest = 100;
-            const batches = [];
+            const batches: Song[][] = [];
             const playlistTitle = await this.getPlaylistTitle(playlistId);
             for (let i = 0; i < songs.length; i += maxSongsPerRequest) {
                 batches.push(songs.slice(i, i + maxSongsPerRequest));
             }
             for (const batch of batches) {
-                await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, batch);
+                const trackNames = batch.map(song => song.track);
+                await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, trackNames);
+                console.log(batch)
                 console.log("Added songs to playlist!");
             }
-            const updatedPlaylists: Playlist[] = batches.map((batch) => ({
-                id: playlistId, // Assuming the playlist ID remains the same
-                title: playlistTitle, // Replace with the actual title
-                songNames: batch, // Use the actual song names
-            }));
-        
-            return updatedPlaylists;
+            // const updatedPlaylist: Playlist = batches.map((batch) => ({
+            //     id: playlistId,
+            //     title: playlistTitle, 
+            //     songNames: {
+            //         batch
+            //     }, 
+            // }));
+            // return updatedPlaylist;
         } catch (error) {
             console.log("Something went wrong!", error);
             throw error;
         }
     };
-    async getPlaylistSongs(playlistId: string): Promise<Song[] | Error> {
+    async getPlaylistSongs(playlistId: string): Promise<Array<Song> | Error> {
         try {
-            const allSongs: Song[] = [];
+            const allSongs: Array<Song> = [];
             const maxResults = 100;
             let offset = 0;
             let hasSongs = true; // Set initially to true to start the loop
@@ -133,7 +137,7 @@ export default class Spotify {
 
                 const playlistItems = playlistTracksData.body.items;
 
-                const songs: Song[] = playlistItems.map((item) => ({
+                const songs: Array<Song> = playlistItems.map((item) => ({
                     artist: item.track?.artists[0].name || "Unknown Artist",
                     track: item.track?.name || "Unknown Track",
                 }));

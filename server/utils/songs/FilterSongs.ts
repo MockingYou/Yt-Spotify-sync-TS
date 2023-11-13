@@ -5,13 +5,8 @@ const checkFullName = (details: any): Song => {
     artist: "",
     track: "",
   };
-  if (
-    details.videoDetails.title.includes(" - ") ||
-    details.videoDetails.includes("-")
-  ) {
-    let newTrack = details.videoDetails.title.includes(" - ")
-      ? details.videoDetails.title.split(" - ")
-      : details.videoDetails.title.split("-");
+  if (details.videoDetails.includes("-")) {
+    let newTrack = details.videoDetails.title.split("-");
     song = { artist: newTrack[0].trim(), track: newTrack[1].trim() };
   } else {
     song = {
