@@ -1,11 +1,11 @@
-import Song from "./Song";
+import Song from "../songs/Song";
 
 const checkFullName = (details: any): Song => {
   let song: Song = {
     artist: "",
     track: "",
   };
-  if (details.videoDetails.includes("-")) {
+  if (details.videoDetails.title.includes("-")) {
     let newTrack = details.videoDetails.title.split("-");
     song = { artist: newTrack[0].trim(), track: newTrack[1].trim() };
   } else {

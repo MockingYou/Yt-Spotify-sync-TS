@@ -1,8 +1,8 @@
 import express, { Express, Request, Response, Application } from "express";
 import dotenv from "dotenv";
 import config from "./utils/config.json";
-import Spotify from "./utils/Spotify/Spotify";
-import Youtube from "./utils/Youtube/Youtube";
+import Spotify from "./utils/spotify/Spotify";
+import Youtube from "./utils/youtube/Youtube";
 import AuthData from "./utils/AuthData";
 dotenv.config();
 
@@ -65,19 +65,22 @@ app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
 	try {
 		const ytPlaylistId: string = req.params.playlistId;
 		const songs = await youtube.getTotalSongs(ytPlaylistId);
+        const playlistTitle = await youtube.getPlaylistTitle(ytPlaylistId)
+        const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
+
 		let searchArray = [];
 
 		console.log("=================================");
 		console.log(songs);
 		for (const song of songs) {
 			try {
-				const searchedSong = await spotify.searchSongs(song);
-				searchArray.push(searchedSong);
+				const trackName = await spotify.searchSong(song);
+                await spotify.addSongToPlaylist(spotifyPlaylist, trackName);
 			} catch (error) {
 				console.log("Error searching song:", error);
 			}
 		}
-		await spotify.addSongsToPlaylist(ytPlaylistId, songs);
+        res.send("Playlist created succesfully");
 	} catch (error) {
 		console.log("Failed to create or retrieve playlist", error);
 		throw error;
@@ -98,14 +101,14 @@ app.get("/google/callback", async (req, res) => {
     const code: any = req.query.code;
     try {
         await youtube.getAuthToken(code);
-        res.redirect("/protected");
+        res.redirect("/google/protected");
     } catch (err) {
         console.error("Error exchanging code for token:", err);
         res.status(500).send("Error");
     }
 });
 
-app.get("/protected", (req, res) => {
+app.get("/google/protected", (req, res) => {
     if (!youtube.myAuthData.youtubeToken) {
         res.redirect("/auth");
     } else {
@@ -113,6 +116,17 @@ app.get("/protected", (req, res) => {
     }
   });
 
+  // GET endpoint to list all songs in a YouTube playlist
+app.get('/api/youtube/playlist/:playlistId', async (req, res) => {
+    try {
+      const playlistId = req.params.playlistId;
+      const songs = await youtube.getTotalSongs(playlistId);
+      res.json(songs);
+    } catch (error) {
+      console.error('Error fetching playlist:', error);
+      res.status(500).json({ error: 'Failed to fetch playlist' });
+    }
+  });
 
 
 

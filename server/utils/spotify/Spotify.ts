@@ -60,7 +60,7 @@ export default class Spotify {
         return playlistTitle;
     };
 
-    createPlaylist = async (playlistTitle: string): Promise<String> => {
+    createPlaylist = async (playlistTitle: string): Promise<string> => {
         const playlistData = await this.myAuthData.spotifyApi.createPlaylist(
             playlistTitle,
             { description: "Youtube Playlist", public: true }
@@ -70,52 +70,30 @@ export default class Spotify {
         return spotifyPlaylistId; // Return the playlist ID if needed
     };
 
-    searchSongs = async (song: Song): Promise<string> => {
-        try {
-            const songs = await this.myAuthData.spotifyApi.searchTracks(
-                `${song.track} ${song.artist}`
-            );
-            // console.log(`Search tracks by "${track}" in the track name and "${artist}" in the artist name`);
-            let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
-            return trackId;
-        } catch (error) {
-            console.log("Something went wrong!", error);
-            throw error;
-        }
+    searchSong = async (song: Song): Promise<string> => {
+        const songs = await this.myAuthData.spotifyApi.searchTracks(
+            `${song.track} ${song.artist}`
+        );
+        // console.log(`Search tracks by "${song.track}" in the track name and "${song.artist}" in the artist name`);
+        let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
+        console.log("trackId" + trackId)
+        return trackId;
     };
 
-    addSongsToPlaylist = async (
-        playlistId: string,
-        songs: Array<Song>
-    ): Promise<void> => {
-    // ): Promise<Playlist | Error> => {
-
-        try {
-            const maxSongsPerRequest = 100;
-            const batches: Song[][] = [];
-            const playlistTitle = await this.getPlaylistTitle(playlistId);
-            for (let i = 0; i < songs.length; i += maxSongsPerRequest) {
-                batches.push(songs.slice(i, i + maxSongsPerRequest));
-            }
-            for (const batch of batches) {
-                const trackNames = batch.map(song => song.track);
-                await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, trackNames);
-                console.log(batch)
-                console.log("Added songs to playlist!");
-            }
-            // const updatedPlaylist: Playlist = batches.map((batch) => ({
-            //     id: playlistId,
-            //     title: playlistTitle, 
-            //     songNames: {
-            //         batch
-            //     }, 
-            // }));
-            // return updatedPlaylist;
-        } catch (error) {
-            console.log("Something went wrong!", error);
-            throw error;
-        }
+    addSongToPlaylist = async (playlistId: string, trackName: string ) => {
+        await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [trackName]);
+        
+        console.log("Added song to playlist!");
+        
+        // If you want to return the updated playlist, you can uncomment the following code
+        // const updatedPlaylist: Playlist = {
+        //     id: playlistId,
+        //     title: playlistTitle,
+        //     songNames: [trackName],
+        // };
+        // return updatedPlaylist;   
     };
+
     getPlaylistSongs = async (playlistId: string): Promise<Array<Song> | Error> => {
         try {
             const allSongs: Array<Song> = [];

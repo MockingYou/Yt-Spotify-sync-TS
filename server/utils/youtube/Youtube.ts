@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import config from "../config.json";
 import AuthData from "../AuthData";
 import Song from "../songs/Song";
-import { checkFullName, normalizeString } from "../songs/FilterSongs";
+import { checkFullName, normalizeString } from "../methods/FilterSongs";
 dotenv.config();
 
 type MyAuthData = Omit<AuthData, "spotifyApi" | "spotifyToken">;
@@ -42,39 +42,29 @@ export default class Youtube {
 		this.myAuthData.youtubeToken = youtubeToken;
 	};
 
-	getPlaylistTitle = async (playlistId: string): Promise<string | null> => {
+	getPlaylistTitle = async (playlistId: string): Promise<string> => {
 		try {
 			const url = `${this.baseApiUrl}/playlists?part=snippet&id=${playlistId}&key=${this.myAuthData.youtubeApiKey}`;
 			const response = await axios.get(url);
-			const playlist = response.data.items[0];
-			if (playlist) {
-				return playlist.snippet.title;
-			} else {
-				return null;
-			}
+			const playlist: K = response.data.items[0];
+            
+			return playlist.snippet.title;
 		} catch (error) {
 			console.log(error);
 			throw new Error("Failed to fetch playlist information");
 		}
 	};
-	extractSongsFromYouTube = async (item: Array<K>): Promise<Array<Song>> => {
+	extractSongsFromYouTube = async (item: K): Promise<Song> => {
 		const url = "https://www.youtube.com/watch?v=";
-		const songs: Array<Song> = [];
+		const videoId = item.snippet.resourceId.videoId;
+		const video_url = url + videoId;
 
-		for (let i = 0; i < item.length; i++) {
-			const videoId = item[i].snippet.resourceId.videoId;
-			const video_url = url + videoId;
-			try {
-				const details = await ytdl.getBasicInfo(video_url);
-				const filter = checkFullName(details);
-				const track = normalizeString(filter.track);
-				const artist = normalizeString(filter.artist);
-				songs.push({ track, artist });
-			} catch (error) {
-				console.error(error);
-			}
-		}
-		return songs;
+		const details = await ytdl.getBasicInfo(video_url);
+		const filter = checkFullName(details);
+		const track = normalizeString(filter.track);
+		const artist = normalizeString(filter.artist);
+		const song: Song = { track, artist };
+		return song;
 	};
 	getTotalSongs = async (
 		playlistId: string,
@@ -102,7 +92,7 @@ export default class Youtube {
 				return songs;
 			}
 		} catch (error) {
-			console.error(error);
+			// console.error(error);
 			throw new Error("Failed to fetch playlist data");
 		}
 	};
