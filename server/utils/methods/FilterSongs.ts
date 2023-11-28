@@ -1,4 +1,4 @@
-import Song from "../songs/Song";
+import Song from "../interfaces/songs/Song";
 
 const checkFullName = (details: any): Song => {
   let song: Song = {
