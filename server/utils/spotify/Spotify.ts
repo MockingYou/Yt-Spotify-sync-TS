@@ -2,20 +2,20 @@ import SpotifyWebApi from "spotify-web-api-node";
 import Playlist from "../interfaces/songs/Playlist";
 import AuthData from "../AuthData";
 import Song from "../interfaces/songs/Song";
-import Token from "../interfaces/tokens/Token"
+import Token from "../interfaces/tokens/Token";
 import dotenv from "dotenv";
-import config from "../config.json"
+import config from "../config.json";
 dotenv.config();
 
-type MyAuthData = Omit<AuthData, "youtubeApi" | "youtubeToken">
+type MyAuthData = Omit<AuthData, "youtubeApi" | "youtubeToken">;
 
 export default class Spotify {
     public isLogged: boolean = false;
-    myAuthData : MyAuthData;
+    myAuthData: MyAuthData;
     constructor() {
         this.myAuthData = {
-            clientId: process.env.CLIENT_ID_SPOTIFY || '',
-            clientSecret: process.env.CLIENT_SECRET_SPOTIFY || '',
+            clientId: process.env.CLIENT_ID_SPOTIFY || "",
+            clientSecret: process.env.CLIENT_SECRET_SPOTIFY || "",
             redirectUri: config.spotify.redirect_uris[0],
             spotifyApi: new SpotifyWebApi() as SpotifyWebApi,
         };
@@ -23,18 +23,22 @@ export default class Spotify {
         this.myAuthData.spotifyApi = new SpotifyWebApi({
             clientId: this.myAuthData.clientId,
             clientSecret: this.myAuthData.clientSecret,
-            redirectUri: this.myAuthData.redirectUri
+            redirectUri: this.myAuthData.redirectUri,
         });
     }
 
     getAuthToken = async (code: string): Promise<Token> => {
-        const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(code);
+        const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(
+            code
+        );
         const spotifyToken = data.body["access_token"];
         const refreshToken = data.body["refresh_token"];
         const expiresIn = data.body["expires_in"];
         this.myAuthData.spotifyApi.setAccessToken(spotifyToken);
         this.myAuthData.spotifyApi.setRefreshToken(refreshToken);
-        console.log(`Successfully retrieved spotify access token. Expires in ${expiresIn} s.`);
+        console.log(
+            `Successfully retrieved spotify access token. Expires in ${expiresIn} s.`
+        );
         setInterval(async () => {
             try {
                 const tokenData =
@@ -49,21 +53,24 @@ export default class Spotify {
         return {
             access_token: spotifyToken,
             refresh_token: refreshToken,
-            token_source: "spotify_token"
+            token_source: "spotify_token",
         };
-    }
+    };
 
     setToken = (storedToken: Token | null, isLogged: boolean) => {
-        if(storedToken) {
+        if (storedToken) {
             this.myAuthData.spotifyApi.setAccessToken(storedToken.access_token);
-            this.myAuthData.spotifyApi.setRefreshToken(storedToken.access_token);
+            this.myAuthData.spotifyApi.setRefreshToken(
+                storedToken.access_token
+            );
         } else {
-
         }
-    }
+    };
 
     getPlaylistTitle = async (playlistId: string): Promise<string> => {
-        const playlist = await this.myAuthData.spotifyApi.getPlaylist(playlistId);
+        const playlist = await this.myAuthData.spotifyApi.getPlaylist(
+            playlistId
+        );
         const playlistTitle = playlist.body.name;
         return playlistTitle;
     };
@@ -84,42 +91,50 @@ export default class Spotify {
         );
         // console.log(`Search tracks by "${song.track}" in the track name and "${song.artist}" in the artist name`);
         let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
-        console.log("trackId" + trackId)
+        console.log("trackId" + trackId);
         return trackId;
     };
 
-    addSongToPlaylist = async (playlistId: string, trackName: string ) => {
-        await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [trackName]);
-        
+    addSongToPlaylist = async (playlistId: string, trackName: string) => {
+        await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [
+            trackName,
+        ]);
+
         console.log("Added song to playlist!");
-        
+
         // If you want to return the updated playlist, you can uncomment the following code
         // const updatedPlaylist: Playlist = {
         //     id: playlistId,
         //     title: playlistTitle,
         //     songNames: [trackName],
         // };
-        // return updatedPlaylist;   
+        // return updatedPlaylist;
     };
 
-    getPlaylistSongs = async (playlistId: string): Promise<Array<Song> | Error> => {
+    getPlaylistSongs = async (
+        playlistId: string
+    ): Promise<Array<Song> | Error> => {
         try {
             const allSongs: Array<Song> = [];
             const maxResults = 100;
             let offset = 0;
             let hasSongs = true; // Set initially to true to start the loop
-            const playlistTracks = await this.myAuthData.spotifyApi.getPlaylistTracks(playlistId, {
-                fields: 'total',
-              });
+            const playlistTracks =
+                await this.myAuthData.spotifyApi.getPlaylistTracks(playlistId, {
+                    fields: "total",
+                });
             const playlistLength = playlistTracks.body.total;
 
             do {
                 const playlistTracksData =
-                    await this.myAuthData.spotifyApi.getPlaylistTracks(playlistId, {
-                        offset,
-                        limit: maxResults,
-                        fields: "items(track(name,artists(name)))",
-                    });
+                    await this.myAuthData.spotifyApi.getPlaylistTracks(
+                        playlistId,
+                        {
+                            offset,
+                            limit: maxResults,
+                            fields: "items(track(name,artists(name)))",
+                        }
+                    );
 
                 const playlistItems = playlistTracksData.body.items;
 
@@ -141,5 +156,5 @@ export default class Spotify {
             console.error("Error getting playlist songs:", error);
             throw error;
         }
-    }
+    };
 }
