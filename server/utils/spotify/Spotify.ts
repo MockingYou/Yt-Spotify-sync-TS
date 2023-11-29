@@ -1,6 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node";
 import Playlist from "../interfaces/songs/Playlist";
-import AuthData from "../AuthData";
+import AuthData from "../interfaces/AuthData";
 import Song from "../interfaces/songs/Song";
 import Token from "../interfaces/tokens/Token";
 import dotenv from "dotenv";
@@ -27,34 +27,61 @@ export default class Spotify {
         });
     }
 
-    getAuthToken = async (code: string): Promise<Token> => {
-        const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(
-            code
-        );
-        const spotifyToken = data.body["access_token"];
-        const refreshToken = data.body["refresh_token"];
-        const expiresIn = data.body["expires_in"];
-        this.myAuthData.spotifyApi.setAccessToken(spotifyToken);
-        this.myAuthData.spotifyApi.setRefreshToken(refreshToken);
-        console.log(
-            `Successfully retrieved spotify access token. Expires in ${expiresIn} s.`
-        );
-        setInterval(async () => {
+    public getAuthToken = async (code: string): Promise<Token> => {
+        try {
+            const data = await this.myAuthData.spotifyApi.authorizationCodeGrant(code);
+            const spotifyToken = data.body["access_token"];
+            const refreshToken = data.body["refresh_token"];
+            const expiresIn = data.body["expires_in"];
+    
+            this.myAuthData.spotifyApi.setAccessToken(spotifyToken);
+            this.myAuthData.spotifyApi.setRefreshToken(refreshToken);
+    
+            console.log(`Successfully retrieved Spotify access token. Expires in ${expiresIn} s.`);
+    
+            setTimeout(async () => {
+                try {
+                    const tokenData = await this.myAuthData.spotifyApi.refreshAccessToken();
+                    const newAccessToken = tokenData.body["access_token"];
+                    const newExpiresIn = tokenData.body["expires_in"];
+    
+                    console.log("The access token has been refreshed!");
+                    this.myAuthData.spotifyApi.setAccessToken(newAccessToken);
+    
+                    this.scheduleTokenRefresh(newExpiresIn);
+                } catch (refreshError) {
+                    console.error("Error refreshing access token:", refreshError);
+                }
+            }, expiresIn * 1000);
+    
+            return {
+                access_token: spotifyToken,
+                refresh_token: refreshToken,
+                token_source: "spotify_token",
+            };
+        } catch (error) {
+            console.error("Error getting Spotify access token:", error);
+            throw new Error("Failed to retrieve Spotify access token");
+        }
+    };
+    
+    private scheduleTokenRefresh = (expiresIn: number): void => {
+        // Schedule token refresh just before it expires
+        setTimeout(async () => {
             try {
-                const tokenData =
-                    await this.myAuthData.spotifyApi.refreshAccessToken();
+                const tokenData = await this.myAuthData.spotifyApi.refreshAccessToken();
                 const newAccessToken = tokenData.body["access_token"];
+                const newExpiresIn = tokenData.body["expires_in"];
+    
                 console.log("The access token has been refreshed!");
                 this.myAuthData.spotifyApi.setAccessToken(newAccessToken);
+    
+                // Recursively schedule the next refresh
+                this.scheduleTokenRefresh(newExpiresIn);
             } catch (refreshError) {
                 console.error("Error refreshing access token:", refreshError);
             }
-        }, (expiresIn / 2) * 1000);
-        return {
-            access_token: spotifyToken,
-            refresh_token: refreshToken,
-            token_source: "spotify_token",
-        };
+        }, expiresIn * 1000);
     };
 
     setToken = (storedToken: Token | null, isLogged: boolean) => {
@@ -67,15 +94,20 @@ export default class Spotify {
         }
     };
 
-    getPlaylistTitle = async (playlistId: string): Promise<string> => {
-        const playlist = await this.myAuthData.spotifyApi.getPlaylist(
-            playlistId
-        );
-        const playlistTitle = playlist.body.name;
-        return playlistTitle;
+    public getPlaylistTitle = async (playlistId: string): Promise<string> => {
+        try {
+            const playlist = await this.myAuthData.spotifyApi.getPlaylist(
+                playlistId
+            );
+            const playlistTitle = playlist.body.name;
+            return playlistTitle;
+        } catch (error) {
+            console.error("Error getting playlist title:", error);
+            throw new Error("Failed to fetch playlist title");
+        }
     };
 
-    createPlaylist = async (playlistTitle: string): Promise<string> => {
+    public createPlaylist = async (playlistTitle: string): Promise<string> => {
         const playlistData = await this.myAuthData.spotifyApi.createPlaylist(
             playlistTitle,
             { description: "Youtube Playlist", public: true }
@@ -85,33 +117,31 @@ export default class Spotify {
         return spotifyPlaylistId; // Return the playlist ID if needed
     };
 
-    searchSong = async (song: Song): Promise<string> => {
-        const songs = await this.myAuthData.spotifyApi.searchTracks(
-            `${song.track} ${song.artist}`
-        );
-        // console.log(`Search tracks by "${song.track}" in the track name and "${song.artist}" in the artist name`);
-        let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
-        console.log("trackId" + trackId);
-        return trackId;
+    public searchSong = async (song: Song): Promise<string> => {
+        try {
+            const songs = await this.myAuthData.spotifyApi.searchTracks(
+                `${song.track} ${song.artist}`
+            );
+            let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
+            console.log("trackId" + trackId);
+            return trackId;
+        } catch (error) {
+            console.error("Error searching for song:", error);
+            throw new Error("Failed to search for the song");
+        }
     };
 
-    addSongToPlaylist = async (playlistId: string, trackName: string) => {
-        await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [
-            trackName,
-        ]);
-
-        console.log("Added song to playlist!");
-
-        // If you want to return the updated playlist, you can uncomment the following code
-        // const updatedPlaylist: Playlist = {
-        //     id: playlistId,
-        //     title: playlistTitle,
-        //     songNames: [trackName],
-        // };
-        // return updatedPlaylist;
+    public addSongToPlaylist = async (playlistId: string, trackName: string) => {
+        try {
+            await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [trackName]);
+            console.log("Added song to playlist!");
+        } catch (error) {
+            console.error("Error adding song to playlist:", error);
+            throw new Error("Failed to add song to playlist");
+        }
     };
 
-    getPlaylistSongs = async (
+    public getPlaylistSongs = async (
         playlistId: string
     ): Promise<Array<Song> | Error> => {
         try {
@@ -154,7 +184,7 @@ export default class Spotify {
             return allSongs;
         } catch (error) {
             console.error("Error getting playlist songs:", error);
-            throw error;
+            throw new Error("Failed to fetch playlist songs");
         }
     };
 }

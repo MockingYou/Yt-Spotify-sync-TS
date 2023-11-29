@@ -12,8 +12,8 @@ const Selector = () => {
     const screenHeight = window.screen.height;
     const popupWidth = 600;
     const popupHeight = 900;
-    const left = (screenWidth - popupWidth) / 2;
-    const top = (screenHeight - popupHeight) / 2;
+    const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+    const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
     const handleSpotifyLogin = async () => {
         try {

@@ -6,7 +6,7 @@ import Spotify from "./utils/spotify/Spotify";
 import Youtube from "./utils/youtube/Youtube";
 import { generateRandomKey } from "./utils/methods/generateRandomKey";
 import jwt from "jsonwebtoken";
-import AuthData from "./utils/AuthData";
+import AuthData from "./utils/interfaces/AuthData";
 dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 8000;
@@ -74,8 +74,9 @@ app.get("/api/spotify/playlist/:playlistId", async (req, res) => {
 		const songs = await spotify.getPlaylistSongs(playlistId);
 		res.json(songs);
 	} catch (error: any) {
-		console.error("Error fetching playlist title:", error.message);
-		throw error;
+		res.status(500).json({
+			error: `Error fetching playlist songs: ${error}`,
+		});
 	}
 });
 
@@ -85,7 +86,7 @@ app.post("/api/spotify/create-playlist", async (req, res) => {
 		res.json(playlistId);
 	} catch (error) {
 		console.log("Failed to create or retrieve playlist", error);
-		throw error;
+		throw new Error;
 	}
 });
 
@@ -111,7 +112,6 @@ app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 });
-
 //  ================== Spotify APIs ======================
 
 //  ================== Google APIs ======================
@@ -157,6 +157,26 @@ app.get("/api/youtube/playlist/:playlistId", async (req, res) => {
 		res.status(500).json({ error: "Failed to fetch playlist" });
 	}
 });
+
+app.get("/api/youtube/create-playlist/:playlistTitle", async (req, res) => {
+	try {
+		const playlistTitle = req.params.playlistTitle;
+		const playlistId = await youtube.createPlaylist(playlistTitle);
+		res.json(playlistId);
+	} catch (error) {
+		console.error("Error fetching playlist:", error);
+		res.status(500).json({ error: "Failed to fetch playlist" });
+	}
+});
+
+app.get("/api/youtube/getSong", async (req, res) => {
+	try {
+		const songId = await youtube.searchSong({artist: "50 cent", track: "candy shop"});
+		res.send(songId)
+	} catch (error) {
+		res.status(500).json({ error: "Error searching song" });
+	}
+})
 
 //  ================== Google APIs ======================
 
