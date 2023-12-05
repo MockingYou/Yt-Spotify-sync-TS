@@ -93,7 +93,7 @@ app.post("/api/spotify/create-playlist", async (req, res) => {
 app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
 	try {
 		const ytPlaylistId: string = req.params.playlistId;
-		const songs = await youtube.getTotalSongs(ytPlaylistId);
+		const songs = await youtube.getPlaylistSongs(ytPlaylistId);
 		const playlistTitle = await youtube.getPlaylistTitle(ytPlaylistId);
 		const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
 		for (const song of songs) {
@@ -150,7 +150,7 @@ app.get("/google/protected", (req, res) => {
 app.get("/api/youtube/playlist/:playlistId", async (req, res) => {
 	try {
 		const playlistId = req.params.playlistId;
-		const songs = await youtube.getTotalSongs(playlistId);
+		const songs = await youtube.getPlaylistSongs(playlistId);
 		res.json(songs);
 	} catch (error) {
 		console.error("Error fetching playlist:", error);
@@ -178,6 +178,31 @@ app.get("/api/youtube/getSong", async (req, res) => {
 	}
 })
 
+app.post("/api/youtube/add-songs/:playlistId", async (req, res) => {
+	try {
+		const spotifyPlaylistId: string = req.params.playlistId;
+		const songs = await spotify.getPlaylistSongs(spotifyPlaylistId);
+		console.log(songs)
+		const playlistTitle = await spotify.getPlaylistTitle(spotifyPlaylistId);
+		console.log(playlistTitle)
+		const youtubePlaylistId = await youtube.createPlaylist(playlistTitle);
+		console.log(youtubePlaylistId)
+		for(const song of songs) {
+			console.log(song)
+			try {
+				await youtube.addSongToPlaylist(youtubePlaylistId, song)
+			} catch (error) {
+				console.log(`Error processing song '${song}':`, error);
+			}
+			console.log('Request Payload:', JSON.stringify({ snippet: { playlistId: youtubePlaylistId, resourceId: { kind: 'youtube#video', videoId: song } } }));
+		}
+
+		res.status(200).json({ message: "Playlist created successfully" });
+	} catch (error: any) {
+		console.error(`Error converting playlist: ${error.response.data}`);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+})
 //  ================== Google APIs ======================
 
 app.listen(port, () => {

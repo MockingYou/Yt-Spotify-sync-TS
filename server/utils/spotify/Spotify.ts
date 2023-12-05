@@ -143,7 +143,7 @@ export default class Spotify {
 
     public getPlaylistSongs = async (
         playlistId: string
-    ): Promise<Array<Song> | Error> => {
+    ): Promise<Array<Song>> => {
         try {
             const allSongs: Array<Song> = [];
             const maxResults = 100;

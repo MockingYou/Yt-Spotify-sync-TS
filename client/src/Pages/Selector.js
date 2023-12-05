@@ -8,8 +8,7 @@ const Selector = () => {
     const [youtubeLoggedIn, setYoutubeLoggedIn] = useState(false);
     const [loading, setLoading] = useState(false);
     const [playlistLink, setPlatlistLink] = useState("");
-    const screenWidth = window.screen.width;
-    const screenHeight = window.screen.height;
+
     const popupWidth = 600;
     const popupHeight = 900;
     const left = window.screenX + (window.outerWidth - popupWidth) / 2;

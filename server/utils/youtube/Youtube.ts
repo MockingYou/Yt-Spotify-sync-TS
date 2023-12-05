@@ -1,6 +1,4 @@
-import axios from "axios";
 import { google, youtube_v3 } from "googleapis";
-import ytdl from "ytdl-core";
 import dotenv from "dotenv";
 import config from "../config.json";
 import AuthData from "../interfaces/AuthData";
@@ -16,10 +14,9 @@ type K = { [key: string]: any };
 export default class Youtube {
   public isLogged: boolean = false;
   private baseApiUrl: string = "https://www.googleapis.com/youtube/v3";
-  private ytUrl: string = "https://www.youtube.com/watch?v=";
+  private youtube: ReturnType<typeof google.youtube>;
   myAuthData: MyAuthData;
   private defaultToken: Token = createToken({});
-  private youtube: ReturnType<typeof google.youtube>; 
 
   constructor() {
     this.myAuthData = {
@@ -53,15 +50,12 @@ export default class Youtube {
       const youtubeToken = tokenResponse.tokens.access_token as string;
       console.log(`Successfully retrieved youtube access token.`);
 
+      this.myAuthData.youtubeApi.setCredentials({ access_token: youtubeToken });
+
       // Set credentials on the 'youtube' instance
       this.youtube = google.youtube({
         version: 'v3',
         auth: this.myAuthData.youtubeApi,
-      });
-
-      this.youtube = google.youtube({
-        version: 'v3',
-        auth: this.myAuthData.youtubeApiKey,
       });
 
       return (this.defaultToken = {
@@ -72,33 +66,68 @@ export default class Youtube {
       console.error("Error retrieving youtube access token:", error);
       throw new Error("Failed to retrieve youtube access token");
     }
-  };
+  };  
 
   public getPlaylistTitle = async (playlistId: string): Promise<string> => {
     try {
-      const url = `${this.baseApiUrl}/playlists?part=snippet&id=${playlistId}&key=${this.myAuthData.youtubeApiKey}`;
-      const response = await axios.get(url);
-      const playlist: K = response.data.items[0];
-
-      return playlist.snippet.title;
+      const response = await this.youtube.playlists.list({
+        part: ["snippet"],
+        id: [playlistId],
+      } as youtube_v3.Params$Resource$Playlists$List);
+  
+      const playlist: K | undefined = response.data.items?.[0];
+  
+      if (playlist) {
+        return playlist.snippet.title;
+      } else {
+        console.log("Playlist not found or has no items.");
+        throw new Error("Failed to fetch playlist information");
+      }
     } catch (error) {
       console.log("Error fetching playlist title:", error);
       throw new Error("Failed to fetch playlist information");
     }
   };
+  
 
-  private extractSongsFromYouTube = async (
-    item: Array<K>,
-  ): Promise<Array<Song>> => {
-    const url = "https://www.youtube.com/watch?v=";
+  private async getVideoDetails(videoId: string): Promise<youtube_v3.Schema$Video> {
+    try {
+      const response = await this.youtube.videos.list({
+        part: ["snippet"],
+        id: [videoId],
+      } as youtube_v3.Params$Resource$Videos$List);
+  
+      const videoDetails = response.data.items?.[0];
+  
+      if (videoDetails) {
+        return videoDetails;
+      } else {
+        console.log(`Video details not found for video ID: ${videoId}`);
+        throw new Error("Failed to fetch video details");
+      }
+    } catch (error) {
+      console.error(`Error fetching video details for video ID ${videoId}:`, error);
+      throw new Error("Failed to fetch video details");
+    }
+  }
+  
+  private async extractSongsFromYouTube(
+    items: Array<youtube_v3.Schema$PlaylistItem>
+  ): Promise<Array<Song>> {
     const songs: Array<Song> = [];
-
-    for (let i = 0; i < item.length; i++) {
-      const videoId = item[i].snippet.resourceId.videoId;
-      const video_url = url + videoId;
+  
+    for (let i = 0; i < items.length; i++) {
+      const snippet = items[i].snippet;
+      if (!snippet || !snippet.resourceId) {
+        console.error("Invalid snippet or resourceId for item at index", i);
+        continue;  // Skip to the next iteration
+      }
+  
+      const videoId = snippet.resourceId.videoId;
+  
       try {
-        const details = await ytdl.getBasicInfo(video_url);
-        const filter = checkFullName(details);
+        const details = await this.getVideoDetails(videoId as string);
+        const filter = checkFullName(details.snippet);
         const track = normalizeString(filter.track);
         const artist = normalizeString(filter.artist);
         songs.push({ track, artist });
@@ -106,30 +135,36 @@ export default class Youtube {
         console.error("Error extracting songs from YouTube:", error);
       }
     }
+  
     return songs;
-  };
+  }
 
-  public getTotalSongs = async (
+  public getPlaylistSongs = async (
     playlistId: string,
     nextPageToken: string | null = null,
     totalSongs: number = 0,
     songs: Array<Song> = [],
   ): Promise<Array<Song>> => {
     try {
-      const maxResults = 50; // Maximum results per page (50 is the maximum allowed by the YouTube Data API).
-      let url = `${this.baseApiUrl}/playlistItems?part=snippet&playlistId=${playlistId}&key=${this.myAuthData.youtubeApiKey}&maxResults=${maxResults}`;
-      if (nextPageToken) {
-        url += `&pageToken=${nextPageToken}`;
-      }
-      const response = await axios.get(url);
-      const { items, nextPageToken: newNextPageToken } = response.data;
+      const maxResults = 50;
+      const response = await this.youtube.playlistItems.list({
+        part: ["snippet"],
+        playlistId: playlistId,
+        maxResults: maxResults,
+        pageToken: nextPageToken,
+      } as youtube_v3.Params$Resource$Playlistitems$List);
 
-      const info = await this.extractSongsFromYouTube(items);
+      const { items, nextPageToken: newNextPageToken }  = response.data;
+      if (!items) {
+        console.error("Invalid response: items is undefined");
+        return songs;
+      }
+      const info = await this.extractSongsFromYouTube(items as youtube_v3.Schema$PlaylistItem[]);
       songs.push(...info);
       totalSongs += items.length;
 
       if (newNextPageToken) {
-        return this.getTotalSongs(
+        return this.getPlaylistSongs(
           playlistId,
           newNextPageToken,
           totalSongs,
@@ -144,7 +179,9 @@ export default class Youtube {
     }
   };
 
-  public createPlaylist = async (playlistTitle: string): Promise<string> => {
+  public createPlaylist = async (
+    playlistTitle: string,
+  ): Promise<string> => {
     try {
       if (!this.defaultToken.access_token) {
         return "Unauthorized";
@@ -160,14 +197,16 @@ export default class Youtube {
           },
         },
       } as youtube_v3.Params$Resource$Playlists$Insert);
+
       if (response.status !== 200) {
         return `Error creating playlist. Status: ${response.status}`;
       }
+
       console.log("New playlist created:", response.data);
       return response.data.id as string;
     } catch (error) {
       console.error("Error creating playlist:", error);
-      throw error; // Rethrow the error to propagate it up
+      throw error;
     }
   };
 
@@ -175,19 +214,16 @@ export default class Youtube {
     try {
       const query = `${song.artist} ${song.track}`;
       console.log("Search Query:", query);
-
+  
       try {
         const searchResponse = await this.youtube.search.list({
           part: ["id"],
           q: query,
           maxResults: 1,
-          type: "video",
-        } as youtube_v3.Params$Resource$Playlists$Insert);
-
-        if (
-          searchResponse.data.items &&
-          searchResponse.data.items.length > 0
-        ) {
+          type: ["video"], // Wrap "video" in an array
+        } as youtube_v3.Params$Resource$Search$List);
+  
+        if(searchResponse.data.items && searchResponse.data.items.length > 0) {
           song.id = searchResponse.data.items[0].id
             ?.videoId as string;
           if (song.id) {
@@ -198,7 +234,7 @@ export default class Youtube {
         console.log(`Error searching for song: ${query}`, error);
         // You can handle the error here, e.g., return null or throw an error
       }
-
+  
       console.log("No video found for the provided artist-song pair.");
       return song.id as string;
     } catch (error) {
@@ -206,10 +242,11 @@ export default class Youtube {
       throw error;
     }
   };
+  
 
   public addSongToPlaylist = async (
-    song: Song,
     playlistId: string,
+    song: Song,
   ): Promise<void> => {
     try {
       const videoId = await this.searchSong(song);
@@ -221,35 +258,27 @@ export default class Youtube {
         );
         return;
       }
-      try {
-        const response = await this.youtube.videos.insert({
-          part: ["snippet"],
-          requestBody: {
-            snippet: {
-              playlistId: playlistId,
-              resourceId: {
-                kind: "youtube#video",
-                videoId: videoId,
-              },
+
+      const response = await this.youtube.playlistItems.insert({
+        part: ["snippet"],
+        requestBody: {
+          snippet: {
+            playlistId: playlistId,
+            resourceId: {
+              kind: "youtube#video",
+              videoId: videoId,
             },
           },
-          headers: {
-            Authorization: `Bearer ${this.defaultToken.access_token}`, // Use oauthToken here
-            "Content-Type": "application/json",
-          },
-        } as youtube_v3.Params$Resource$Videos$Insert);
-        console.log(
-          `Song with video ID ${videoId} added to playlist`,
-          response.data,
-        );
-      } catch (error) {
-        console.log(`Error adding video ${videoId} to playlist`, error);
-        // You can handle the error here, e.g., skip the video or continue
-      }
-      console.log("Playlist created and video added successfully.");
+        },
+      } as youtube_v3.Params$Resource$Playlistitems$Insert);
+
+      console.log(
+        `Song with video ID ${videoId} added to playlist`,
+        response.data,
+      );
     } catch (error) {
       console.log("Add Playlist Error:", error);
-      throw error; // Rethrow the error to propagate it up
+      throw error;
     }
   };
 }
