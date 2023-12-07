@@ -5,7 +5,7 @@ import AuthData from "../interfaces/AuthData";
 import Song from "../interfaces/songs/Song";
 import Token, { createToken } from "../interfaces/tokens/Token";
 
-import { checkFullName, normalizeString } from "../methods/filterSongs";
+import { checkFullName, normalizeString } from "../methods/FilterSongs";
 dotenv.config();
 
 type MyAuthData = Omit<AuthData, "spotifyApi" | "spotifyToken">;

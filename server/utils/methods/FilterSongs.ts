@@ -5,13 +5,13 @@ const checkFullName = (details: any): Song => {
 		artist: "",
 		track: "",
 	};
-	if (details.videoDetails.title.includes("-")) {
-		let newTrack = details.videoDetails.title.split("-");
+	if (details.title.includes("-")) {
+		let newTrack = details.title.split("-");
 		song = { artist: newTrack[0].trim(), track: newTrack[1].trim() };
 	} else {
 		song = {
-			artist: details.videoDetails.author.name,
-			track: details.videoDetails.title,
+			artist: details.channelTitle,
+			track: details.title,
 		};
 		if (song.artist.includes(" - Topic")) {
 			song.artist = song.artist.replace(/\s*-\s*Topic$/, "");
