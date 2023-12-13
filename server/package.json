@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "npx tsc",
-    "start": "concurrently \"nodemon index.ts\"  \" cd ../client && npm start \"",
+    "start": "concurrently \"nodemon index.ts\"  \" cd ../client && npm run dev \"",
     "dev": "nodemon index.ts"
   },
   "author": "MockinU",

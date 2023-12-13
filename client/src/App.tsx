@@ -3,7 +3,6 @@ import NotFound from "./Pages/NotFound";
 import Home from "./Pages/Home";
 import Selector from "./Pages/Selector";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import React from "react";
 
 export default function App() {
 	return (

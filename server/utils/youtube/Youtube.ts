@@ -213,7 +213,7 @@ export default class Youtube {
   public searchSong = async (song: Song): Promise<string> => {
     try {
       const query = `${song.artist} ${song.track}`;
-      console.log("Search Query:", query);
+    //   console.log("Search Query:", query);
   
       try {
         const searchResponse = await this.youtube.search.list({
@@ -250,7 +250,7 @@ export default class Youtube {
   ): Promise<void> => {
     try {
       const videoId = await this.searchSong(song);
-      console.log("Video ID:", videoId);
+    //   console.log("Video ID:", videoId);
 
       if (!videoId) {
         console.log(

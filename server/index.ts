@@ -91,27 +91,30 @@ app.post("/api/spotify/create-playlist", async (req, res) => {
 });
 
 app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
-	try {
-		const ytPlaylistId: string = req.params.playlistId;
-		const songs = await youtube.getPlaylistSongs(ytPlaylistId);
-		const playlistTitle = await youtube.getPlaylistTitle(ytPlaylistId);
-		const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
-		for (const song of songs) {
-			try {
-				const trackName = await spotify.searchSong(song);
-				await spotify.addSongToPlaylist(spotifyPlaylist, trackName);
-			} catch (error) {
-				console.log(`Error processing song '${song}':`, error);
-			}
-		}
-		// Respond with success
-		res.status(200).json({ message: "Playlist created successfully" });
-	} catch (error) {
-		// Log and respond with an error
-		console.error(`Error converting playlist: ${error}`);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+    try {
+        const ytPlaylistId = req.params.playlistId;
+        const songs = await youtube.getPlaylistSongs(ytPlaylistId);
+        const playlistTitle = await youtube.getPlaylistTitle(ytPlaylistId);
+        const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
+
+        for (const song of songs) {
+            try {
+                const songData = await spotify.searchSong(song);
+                const songName = await spotify.addSongToPlaylist(spotifyPlaylist, songData);
+                console.log(songName)
+            } catch (error) {
+                console.log(`Error processing song '${song}':`, error);
+            }
+        }
+        // Respond with success after processing all songs
+        res.status(200).json({ message: "Playlist created successfully" });
+    } catch (error) {
+        // Log and respond with an error
+        console.error(`Error converting playlist: ${error}`);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 });
+
 //  ================== Spotify APIs ======================
 
 //  ================== Google APIs ======================
