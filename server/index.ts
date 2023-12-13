@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import config from "./utils/config.json";
 import Spotify from "./utils/spotify/Spotify";
 import Youtube from "./utils/youtube/Youtube";
+import { createSpotifyPlaylist } from "./utils/methods/playlistHandling";
 import { generateRandomKey } from "./utils/methods/generateRandomKey";
 import jwt from "jsonwebtoken";
 import AuthData from "./utils/interfaces/AuthData";
@@ -15,9 +16,14 @@ const spotify_scopes = config.spotify.scopes;
 const spotify = new Spotify();
 const youtube = new Youtube();
 
-app.use(cors());
+const corsOptions = {
+    origin: 'http://localhost:5173', // Update with your React app's origin
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use((req, res, next) => {
-	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Origin", "http://localhost:5173");
 	res.header(
 		"Access-Control-Allow-Methods",
 		"GET, POST, OPTIONS, PUT, PATCH, DELETE",
@@ -93,23 +99,9 @@ app.post("/api/spotify/create-playlist", async (req, res) => {
 app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
     try {
         const ytPlaylistId = req.params.playlistId;
-        const songs = await youtube.getPlaylistSongs(ytPlaylistId);
-        const playlistTitle = await youtube.getPlaylistTitle(ytPlaylistId);
-        const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
-
-        for (const song of songs) {
-            try {
-                const songData = await spotify.searchSong(song);
-                const songName = await spotify.addSongToPlaylist(spotifyPlaylist, songData);
-                console.log(songName)
-            } catch (error) {
-                console.log(`Error processing song '${song}':`, error);
-            }
-        }
-        // Respond with success after processing all songs
-        res.status(200).json({ message: "Playlist created successfully" });
+        await createSpotifyPlaylist(ytPlaylistId, youtube, spotify, res);
+		res.end()
     } catch (error) {
-        // Log and respond with an error
         console.error(`Error converting playlist: ${error}`);
         res.status(500).json({ error: "Internal Server Error" });
     }

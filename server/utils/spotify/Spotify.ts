@@ -134,7 +134,7 @@ export default class Spotify {
         }
     };
 
-    public addSongToPlaylist = async (playlistId: string, song: Song) => {
+    public addSongToPlaylist = async (playlistId: string, song: Song): Promise<string> => {
         try {
             const songName = `${song.track} ${song.artist}`
             await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [song.id as string]);

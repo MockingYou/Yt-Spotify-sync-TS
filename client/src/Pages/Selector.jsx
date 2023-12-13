@@ -24,7 +24,7 @@ const Selector = () => {
 				"_blank",
 				`width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
 			);
-			const messageHandler = event => {
+			const messageHandler = (event) => {
 				if (event.data == "Success! You can now close the window.") {
 					setSpotifyLoggedIn(true);
 					popup.close();
@@ -44,7 +44,7 @@ const Selector = () => {
 				"_blank",
 				`width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
 			);
-			window.addEventListener("message", event => {
+			window.addEventListener("message", (event) => {
 				if (event.data === "Success! You can now close the window.") {
 					setYoutubeLoggedIn(true);
 					// Close the popup
@@ -58,24 +58,29 @@ const Selector = () => {
 
 	const handleYoutubeMusicLogin = () => {};
 
-	const convertPlaylist = async () => {
-		try {
-			const playlistId = playlistLink.split("=")[1];
-			console.log(playlistId);
-			const response = await axios.post(
-				`http://localhost:8000/api/spotify/add-songs/${playlistId}`,
-			);
-			setLoadingProgress(prevProgress =>
-				prevProgress < 100 ? prevProgress + 10 : prevProgress,
-			);
-			console.log(response.data);
-		} catch (error) {
-			console.error("Error getting Playlist:", error.message);
-		}
-		if (loadingProgress != 100) {
-			setLoadingProgress(100);
-		}
+	const convertPlaylist = () => {
+		const playlistId = playlistLink.split("=")[1];
+		const eventSource = new EventSource(`http://localhost:8000/api/spotify/add-songs/${playlistId}`, { withCredentials: true});
+	
+		eventSource.onmessage = function (event) {
+			const data = JSON.parse(event.data);
+	
+			if (event.type === 'message' && data.songName) {
+				// Handle the song name
+				console.log(`Song added: ${data.songName}`);
+				setLoadingProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
+			} else if (event.type === 'error' && data.error) {
+				// Handle the error
+				console.error(`Error: ${data.error}`);
+			}
+		};
+	
+		eventSource.onerror = function (error) {
+			console.error(`EventSource failed: ${error}`);
+		};
 	};
+	
+
 	const buttonData = [
 		{
 			name: "Spotify",
@@ -103,14 +108,14 @@ const Selector = () => {
 				placeholder="Playlist link"
 				type="text"
 				value={playlistLink}
-				onChange={e => setPlaylistLink(e.target.value)}
+				onChange={(e) => setPlaylistLink(e.target.value)}
 			></input>
 			<button className="w-20" onClick={convertPlaylist}>
 				<p>Convert Playlist</p>
 			</button>
 			<LoadingBar progress={loadingProgress} />
 			<div className="h-screen bg-gray-900 w-full flex justify-center items-center">
-				{buttonData.map(data => (
+				{buttonData.map((data) => (
 					<SelectorButton
 						key={data.name}
 						name={data.name}
