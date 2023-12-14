@@ -18,7 +18,6 @@ const youtube = new Youtube();
 
 const corsOptions = {
     origin: 'http://localhost:5173', // Update with your React app's origin
-    credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -38,6 +37,20 @@ app.use((req, res, next) => {
 		next();
 	}
 });
+
+app.get("/events",cors(corsOptions), (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    })
+    setInterval(() => {
+        const data = {message: `Hello: (${new Date().toISOString()})`}
+        console.log(`sent: ${data}`)
+        res.write(`data: ${JSON.stringify(data)}\n\n`)
+    }, 1000)
+})
+
 //  ================== Spotify APIs ======================
 app.get("/spotify/login", (req, res) => {
 	res.redirect(
@@ -96,11 +109,15 @@ app.post("/api/spotify/create-playlist", async (req, res) => {
 	}
 });
 
-app.post("/api/spotify/add-songs/:playlistId", async (req, res) => {
+app.get("/api/spotify/add-songs/:playlistId", cors(corsOptions), async (req, res) => {
     try {
         const ytPlaylistId = req.params.playlistId;
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+        })
         await createSpotifyPlaylist(ytPlaylistId, youtube, spotify, res);
-		res.end()
     } catch (error) {
         console.error(`Error converting playlist: ${error}`);
         res.status(500).json({ error: "Internal Server Error" });
@@ -171,6 +188,12 @@ app.get("/api/youtube/getSong", async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ error: "Error searching song" });
 	}
+})
+
+app.get("/api/youtube/get-length/:playlistId", async (req, res) => {
+    const playlistId = req.params.playlistId
+    const response = await youtube.getPlaylistLength(playlistId)
+    res.json(response)
 })
 
 app.post("/api/youtube/add-songs/:playlistId", async (req, res) => {

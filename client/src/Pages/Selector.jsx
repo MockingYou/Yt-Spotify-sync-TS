@@ -8,7 +8,7 @@ const Selector = () => {
 	const [spotifyLoggedIn, setSpotifyLoggedIn] = useState(false);
 	const [youtubeLoggedIn, setYoutubeLoggedIn] = useState(false);
 	const [youtubeMusicLoggedIn, setYoutubeMusicLoggedIn] = useState(false);
-
+    const [songName, setSongName] = useState("");
 	const [loadingProgress, setLoadingProgress] = useState(0);
 	const [playlistLink, setPlaylistLink] = useState("");
 
@@ -57,27 +57,43 @@ const Selector = () => {
 	};
 
 	const handleYoutubeMusicLogin = () => {};
+    // useEffect(() => {
+    //     eventSourceTest()
+    // }, [])
+    // const eventSourceTest = () => {
+    //     const eventSource = new EventSource('http://localhost:8000/events');
+    //     if(typeof(EventSource) !== 'undefined') {
+    //         console.log('macarena')
+    //     } else {
+    //         console.log("cacat")
+    //     }
+    //     eventSource.onmessage = event => {
+    //         const eventData = JSON.parse(event.data)
+    //         setSongName(eventData.message)
+    //     }
+    //     return () => {
+    //         setSongName("Complete!")
+    //         eventSource.close()
+    //     }
+    // }
 
-	const convertPlaylist = () => {
-		const playlistId = playlistLink.split("=")[1];
-		const eventSource = new EventSource(`http://localhost:8000/api/spotify/add-songs/${playlistId}`, { withCredentials: true});
-	
-		eventSource.onmessage = function (event) {
-			const data = JSON.parse(event.data);
-	
-			if (event.type === 'message' && data.songName) {
-				// Handle the song name
-				console.log(`Song added: ${data.songName}`);
-				setLoadingProgress((prevProgress) => (prevProgress < 100 ? prevProgress + 10 : 100));
-			} else if (event.type === 'error' && data.error) {
-				// Handle the error
-				console.error(`Error: ${data.error}`);
-			}
-		};
-	
-		eventSource.onerror = function (error) {
-			console.error(`EventSource failed: ${error}`);
-		};
+	const convertPlaylist = async () => {
+        const playlistId = playlistLink.split("=")[1];
+        const playlistLength = await axios(`http://localhost:8000/api/youtube/get-length/${playlistId}`)
+		console.log(playlistLength.data)
+        const eventSource = new EventSource(`http://localhost:8000/api/spotify/add-songs/${playlistId}`);
+        if(typeof(EventSource) !== 'undefined') {
+            console.log('macarena')
+        } else {
+            console.log("cacat")
+        }
+        eventSource.onmessage = event => {
+            const eventData = JSON.parse(event.data)
+            setSongName(eventData.message)
+        }
+        return () => {
+            eventSource.close()
+        }
 	};
 	
 
@@ -104,6 +120,9 @@ const Selector = () => {
 
 	return (
 		<Fragment>
+            <div>
+                {songName} 
+            </div>
 			<input
 				placeholder="Playlist link"
 				type="text"

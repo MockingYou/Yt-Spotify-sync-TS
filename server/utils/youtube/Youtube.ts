@@ -139,12 +139,21 @@ export default class Youtube {
     return songs;
   }
 
+  public getPlaylistLength = async (playlistId: string): Promise<number> => {
+    const response = await this.youtube.playlistItems.list({
+        part:["snippet"],
+        playlistId: playlistId,
+    } as youtube_v3.Params$Resource$Playlistitems$List);
+    console.log(response)
+    return response.data.pageInfo?.totalResults as number
+  } 
+
   public getPlaylistSongs = async (
     playlistId: string,
     nextPageToken: string | null = null,
     totalSongs: number = 0,
     songs: Array<Song> = [],
-  ): Promise<Array<Song>> => {
+  ): Promise<K> => {
     try {
       const maxResults = 50;
       const response = await this.youtube.playlistItems.list({
@@ -171,7 +180,10 @@ export default class Youtube {
           songs,
         );
       } else {
-        return songs;
+        return {
+            songs: songs,
+            playlistLength: totalSongs
+        };
       }
     } catch (error) {
       console.error("Error fetching total songs:", error);
