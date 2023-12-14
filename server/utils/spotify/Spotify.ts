@@ -130,17 +130,23 @@ export default class Spotify {
             }
         } catch (error) {
             console.error("Error searching for song:", error);
+            return {
+                id: "", 
+                artist: song.artist,
+                track: song.track
+            }
             throw new Error("Failed to search for the song");
         }
     };
 
     public addSongToPlaylist = async (playlistId: string, song: Song): Promise<string> => {
+        const songName = `${song.track} ${song.artist}`
         try {
-            const songName = `${song.track} ${song.artist}`
             await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [song.id as string]);
             console.log("Added song to playlist!");
             return songName;
         } catch (error) {
+            return songName;
             console.error("Error adding song to playlist:", error);
             throw new Error("Failed to add song to playlist");
         }

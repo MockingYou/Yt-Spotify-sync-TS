@@ -22,7 +22,6 @@ const checkFullName = (details: any): Song => {
 
 const normalizeString = (str: string): string => {
 	return str
-		.replace(/[^\w\s]/gi, "")
 		.replace(
 			/\sfeat(?:\.|uring)?[\s\S]*$|[\s\S]*\sremix$|\slyrics$|\smusic\s*video$/gi,
 			"",

@@ -5,9 +5,10 @@ import Song from "../interfaces/songs/Song";
 
 async function createSpotifyPlaylist(playlistId: string, youtube: Youtube, spotify: Spotify, res: Response) {
     try {
-        const songs = await youtube.getPlaylistSongs(playlistId);
+        
         const playlistTitle = await youtube.getPlaylistTitle(playlistId);
         const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
+        const songs = await youtube.getPlaylistSongs(playlistId);
         for (const song of songs.songs) {
             try {
                 const songData: Song = await spotify.searchSong(song);

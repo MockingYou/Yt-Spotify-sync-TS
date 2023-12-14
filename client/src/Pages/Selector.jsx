@@ -77,10 +77,20 @@ const Selector = () => {
     //     }
     // }
 
+    const clampToRange = (value, min, max) => {
+        const clampValue = Math.max(min, Math.min(value, max))
+        const mappedValue = ((clampValue - min)/ max - min) * 100
+
+        return mappedValue;
+
+    } 
+
 	const convertPlaylist = async () => {
         const playlistId = playlistLink.split("=")[1];
         const playlistLength = await axios(`http://localhost:8000/api/youtube/get-length/${playlistId}`)
 		console.log(playlistLength.data)
+        let i = 0;
+        // (playlistLength.data + i) / 100 
         const eventSource = new EventSource(`http://localhost:8000/api/spotify/add-songs/${playlistId}`);
         if(typeof(EventSource) !== 'undefined') {
             console.log('macarena')
@@ -90,6 +100,11 @@ const Selector = () => {
         eventSource.onmessage = event => {
             const eventData = JSON.parse(event.data)
             setSongName(eventData.message)
+            console.log(eventData.message)
+            i++;
+            let progress = clampToRange(i, 0, playlistLength.data)
+            console.log(progress)
+            setLoadingProgress(progress);
         }
         return () => {
             eventSource.close()

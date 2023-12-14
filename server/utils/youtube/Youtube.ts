@@ -90,7 +90,7 @@ export default class Youtube {
   };
   
 
-  private async getVideoDetails(videoId: string): Promise<youtube_v3.Schema$Video> {
+  private async getVideoDetails(videoId: string): Promise<youtube_v3.Schema$Video | string> {
     try {
       const response = await this.youtube.videos.list({
         part: ["snippet"],
@@ -103,7 +103,7 @@ export default class Youtube {
         return videoDetails;
       } else {
         console.log(`Video details not found for video ID: ${videoId}`);
-        throw new Error("Failed to fetch video details");
+        return "Video details not found for video ID"
       }
     } catch (error) {
       console.error(`Error fetching video details for video ID ${videoId}:`, error);
@@ -127,9 +127,9 @@ export default class Youtube {
   
       try {
         const details = await this.getVideoDetails(videoId as string);
-        const filter = checkFullName(details.snippet);
-        const track = normalizeString(filter.track);
-        const artist = normalizeString(filter.artist);
+        const filter = (typeof details == "string") ? details : checkFullName(details.snippet);
+        const track = (typeof filter == "string") ?  "Failed to search for video" : normalizeString(filter.track);
+        const artist = (typeof filter == "string") ?  "" : normalizeString(filter.artist);
         songs.push({ track, artist });
       } catch (error) {
         console.error("Error extracting songs from YouTube:", error);
