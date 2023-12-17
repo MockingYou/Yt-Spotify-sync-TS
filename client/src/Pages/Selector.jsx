@@ -1,16 +1,13 @@
 import React, { useState, useEffect, Fragment } from "react";
-import axios from "axios";
-import LoadingBar from "../components/LoadingBar";
+
 import SelectorButton from "../components/SelectorButton";
+import SpotifyPlaylists from "../components/SpotifyPlaylists";
 import { faSpotify, faYoutube } from "@fortawesome/free-brands-svg-icons";
 
 const Selector = () => {
 	const [spotifyLoggedIn, setSpotifyLoggedIn] = useState(false);
 	const [youtubeLoggedIn, setYoutubeLoggedIn] = useState(false);
 	const [youtubeMusicLoggedIn, setYoutubeMusicLoggedIn] = useState(false);
-    const [songName, setSongName] = useState("");
-	const [loadingProgress, setLoadingProgress] = useState(0);
-	const [playlistLink, setPlaylistLink] = useState("");
 
 	const popupWidth = 600;
 	const popupHeight = 900;
@@ -57,61 +54,6 @@ const Selector = () => {
 	};
 
 	const handleYoutubeMusicLogin = () => {};
-    // useEffect(() => {
-    //     eventSourceTest()
-    // }, [])
-    // const eventSourceTest = () => {
-    //     const eventSource = new EventSource('http://localhost:8000/events');
-    //     if(typeof(EventSource) !== 'undefined') {
-    //         console.log('macarena')
-    //     } else {
-    //         console.log("cacat")
-    //     }
-    //     eventSource.onmessage = event => {
-    //         const eventData = JSON.parse(event.data)
-    //         setSongName(eventData.message)
-    //     }
-    //     return () => {
-    //         setSongName("Complete!")
-    //         eventSource.close()
-    //     }
-    // }
-
-    const clampToRange = (value, min, max) => {
-        const clampValue = Math.max(min, Math.min(value, max))
-        const mappedValue = ((clampValue - min)/ max - min) * 100
-
-        return mappedValue;
-
-    } 
-
-	const convertPlaylist = async () => {
-        const playlistId = playlistLink.split("=")[1];
-        const playlistLength = await axios(`http://localhost:8000/api/youtube/get-length/${playlistId}`)
-		console.log(playlistLength.data)
-        let i = 0;
-        // (playlistLength.data + i) / 100 
-        const eventSource = new EventSource(`http://localhost:8000/api/spotify/add-songs/${playlistId}`);
-        if(typeof(EventSource) !== 'undefined') {
-            console.log('macarena')
-        } else {
-            console.log("cacat")
-        }
-        eventSource.onmessage = event => {
-            const eventData = JSON.parse(event.data)
-            setSongName(eventData.message)
-            console.log(eventData.message)
-            i++;
-            let progress = clampToRange(i, 0, playlistLength.data)
-            console.log(progress)
-            setLoadingProgress(progress);
-        }
-        return () => {
-            eventSource.close()
-        }
-	};
-	
-
 	const buttonData = [
 		{
 			name: "Spotify",
@@ -135,19 +77,9 @@ const Selector = () => {
 
 	return (
 		<Fragment>
-            <div>
-                {songName} 
-            </div>
-			<input
-				placeholder="Playlist link"
-				type="text"
-				value={playlistLink}
-				onChange={(e) => setPlaylistLink(e.target.value)}
-			></input>
-			<button className="w-20" onClick={convertPlaylist}>
-				<p>Convert Playlist</p>
-			</button>
-			<LoadingBar progress={loadingProgress} />
+			<div>
+				<SpotifyPlaylists />
+			</div>
 			<div className="h-screen bg-gray-900 w-full flex justify-center items-center">
 				{buttonData.map((data) => (
 					<SelectorButton

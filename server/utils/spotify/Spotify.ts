@@ -122,7 +122,6 @@ export default class Spotify {
             const songName = `${song.track} ${song.artist}`
             const songs = await this.myAuthData.spotifyApi.searchTracks(songName);
             let trackId = `spotify:track:${songs.body.tracks?.items[0].id}`;
-            console.log("trackId" + trackId);
             return {
                 id: trackId, 
                 artist: song.artist,
@@ -135,7 +134,6 @@ export default class Spotify {
                 artist: song.artist,
                 track: song.track
             }
-            throw new Error("Failed to search for the song");
         }
     };
 
@@ -143,11 +141,10 @@ export default class Spotify {
         const songName = `${song.track} ${song.artist}`
         try {
             await this.myAuthData.spotifyApi.addTracksToPlaylist(playlistId, [song.id as string]);
-            console.log("Added song to playlist!");
             return songName;
         } catch (error) {
-            return songName;
             console.error("Error adding song to playlist:", error);
+            return songName;
             throw new Error("Failed to add song to playlist");
         }
     };
@@ -165,7 +162,6 @@ export default class Spotify {
                     fields: "total",
                 });
             const playlistLength = playlistTracks.body.total;
-
             do {
                 const playlistTracksData =
                     await this.myAuthData.spotifyApi.getPlaylistTracks(

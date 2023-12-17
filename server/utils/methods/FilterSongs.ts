@@ -26,7 +26,6 @@ const normalizeString = (str: string): string => {
 			/\sfeat(?:\.|uring)?[\s\S]*$|[\s\S]*\sremix$|\slyrics$|\smusic\s*video$/gi,
 			"",
 		)
-		.toLowerCase()
 		.trim();
 };
 

@@ -61,18 +61,35 @@ app.get("/spotify/login", (req, res) => {
 app.get("/spotify/callback", async (req, res) => {
 	const code: any = req.query.code;
 	try {
-		await spotify.getAuthToken(code);
-		const successScript = `
+	  await spotify.getAuthToken(code);
+	  const successScript = `
 		<script>
-			window.opener.postMessage('Success! You can now close the window.', '*');
-		</script>
-	`;
-		res.send(successScript);
+		  window.opener.postMessage('Success! You can now close the window.', '*');
+		</script>`;
+	  res.send(successScript);
 	} catch (error) {
-		console.error("Error getting tokens:", error);
-		res.status(500).json({ error: `Error getting tokens: ${error}` });
+	  console.error("Error getting tokens:", error);
+	  res.status(500).json({ error: `Error getting tokens: ${error}` });
 	}
-});
+  });
+
+
+  app.get("/api/spotify/playlist", async (req, res) => {
+	try {
+	  	const userData = await spotify.myAuthData.spotifyApi.getMe();
+	  	const userId = userData.body.id;
+	  	const limit = 50;
+	  	const playlistsData = await spotify.myAuthData.spotifyApi.getUserPlaylists(userId, { limit });
+		const playlists = playlistsData.body.items.map(playlist => ({
+			id: playlist.id,
+			name: playlist.name,
+		}));
+	  	res.json(playlists);
+	} catch (error) {
+	  	console.error("Error fetching Spotify playlists:", error);
+	  	res.status(500).json({ error: `Error fetching Spotify playlists: ${error}` });
+	}
+  });
 
 app.get("/api/spotify/playlistTitle/:playlistId", async (req, res) => {
 	try {
@@ -87,7 +104,7 @@ app.get("/api/spotify/playlistTitle/:playlistId", async (req, res) => {
 	}
 });
 
-app.get("/api/spotify/playlist/:playlistId", async (req, res) => {
+app.get("/api/spotify/playlist-songs/:playlistId", async (req, res) => {
 	try {
 		const playlistId: string = req.params.playlistId;
 		const songs = await spotify.getPlaylistSongs(playlistId);
@@ -96,16 +113,6 @@ app.get("/api/spotify/playlist/:playlistId", async (req, res) => {
 		res.status(500).json({
 			error: `Error fetching playlist songs: ${error}`,
 		});
-	}
-});
-
-app.post("/api/spotify/create-playlist", async (req, res) => {
-	try {
-		const playlistId = await spotify.createPlaylist("Marcel Te Vede");
-		res.json(playlistId);
-	} catch (error) {
-		console.log("Failed to create or retrieve playlist", error);
-		throw new Error;
 	}
 });
 
@@ -159,27 +166,17 @@ app.get("/google/protected", (req, res) => {
 });
 
 // GET endpoint to list all songs in a YouTube playlist
-app.get("/api/youtube/playlist/:playlistId", async (req, res) => {
-	try {
-		const playlistId = req.params.playlistId;
-		const songs = await youtube.getPlaylistSongs(playlistId);
-		res.json(songs);
-	} catch (error) {
-		console.error("Error fetching playlist:", error);
-		res.status(500).json({ error: "Failed to fetch playlist" });
-	}
-});
+// app.get("/api/youtube/playlist/:playlistId", async (req, res) => {
+// 	try {
+// 		const playlistId = req.params.playlistId;
+// 		const songs = await youtube.getPlaylistSongs(playlistId);
+// 		res.json(songs);
+// 	} catch (error) {
+// 		console.error("Error fetching playlist:", error);
+// 		res.status(500).json({ error: "Failed to fetch playlist" });
+// 	}
+// });
 
-app.get("/api/youtube/create-playlist/:playlistTitle", async (req, res) => {
-	try {
-		const playlistTitle = req.params.playlistTitle;
-		const playlistId = await youtube.createPlaylist(playlistTitle);
-		res.json(playlistId);
-	} catch (error) {
-		console.error("Error fetching playlist:", error);
-		res.status(500).json({ error: "Failed to fetch playlist" });
-	}
-});
 
 app.get("/api/youtube/getSong", async (req, res) => {
 	try {
