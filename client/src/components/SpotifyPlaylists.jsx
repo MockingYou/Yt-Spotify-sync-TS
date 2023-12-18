@@ -2,14 +2,17 @@ import React, { useState, useEffect, Fragment } from "react";
 import axios from "axios";
 import LoadingBar from "../components/LoadingBar";
 import LoadingRadial from "../components/LoadingRadial";
+import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline"
 
 export default function SpotifyPlaylists(props) {
 	const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
 	const [playlistSongsYoutube, setPlaylistSongsYoutube] = useState([]);
 	const [playlistSongsSpotify, setPlaylistSongsSpotify] = useState([]);
+	const [loadingItem, setLoadingItem] = useState(null);
 	const [loadingProgress, setLoadingProgress] = useState(0);
 	const [playlistLink, setPlaylistLink] = useState("");
-	const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [collapsedSongs, setCollapsedSongs] = useState(true);
 
 	const clampToRange = (value, min, max) => {
 		const clampValue = Math.max(min, Math.min(value, max));
@@ -63,14 +66,20 @@ export default function SpotifyPlaylists(props) {
 
 	const getPlaylistSongs = async (playlistId) => {
 		try {
+			setLoading(true)
+			setLoadingItem(playlistId);
 			const playlistSongs = await axios.get(
 				`http://localhost:8000/api/spotify/playlist-songs/${playlistId}`,
 			);
+			setPlaylistSongsSpotify(playlistSongs.data)
 			console.log(playlistSongs.data);
 			// setPlaylistSongsSpotify((prevSongs) => [...prevSongs, playlistSongs.data]);4
 		} catch (error) {
 			console.error("Error fetching playlists:", error);
 			// Handle the error, e.g., set an error state or display a message to the user
+		}finally {
+			setLoading(false);
+			setLoadingItem(null);
 		}
 	};
 
@@ -84,13 +93,32 @@ export default function SpotifyPlaylists(props) {
 					<div className="justify-center flex flex-1 max-h-40 overflow-y-auto z-100 mt-2">
 						<ul className="list-disc">
 							{spotifyPlaylist.map((item, index) => (
-								<li
-									className="m-4 flex items-center"
-									key={index}
-								>
-									{item.name}
-									{true && <LoadingRadial />}
-								</li>
+								<div>
+									<li
+										className="m-4 flex items-center"
+										key={index}
+										onClick={() => getPlaylistSongs(item.id)}
+									>
+										<div className="flex items-center justify-between space-x-4 w-full">
+											<span>
+												{item.name} 
+												{ loadingItem === item.id && loading && <LoadingRadial /> }
+											</span>
+											{ collapsedSongs ? <PlusIcon className="h-6 w-6 text-blue-500"/> :  <Minus className="h-6 w-6 text-blue-500"/>}
+										</div>
+
+									</li>
+									<ul className="list-disc ml-8">
+										{ playlistSongsSpotify.map((item, index) => (
+										<li
+												className="m-4 flex items-center"
+												key={index}
+											>
+											{"->" + item.artist} - {item.track}
+										</li>
+									))}
+									</ul>
+								</div>
 							))}
 						</ul>
 					</div>
