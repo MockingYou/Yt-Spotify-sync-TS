@@ -65,21 +65,24 @@ export default function SpotifyPlaylists(props) {
 	};
 
 	const getPlaylistSongs = async (playlistId) => {
+		setPlaylistSongsSpotify([])
+
 		try {
 			setLoading(true)
 			setLoadingItem(playlistId);
 			const playlistSongs = await axios.get(
 				`http://localhost:8000/api/spotify/playlist-songs/${playlistId}`,
-			);
-			setPlaylistSongsSpotify(playlistSongs.data)
-			console.log(playlistSongs.data);
-			// setPlaylistSongsSpotify((prevSongs) => [...prevSongs, playlistSongs.data]);4
-		} catch (error) {
-			console.error("Error fetching playlists:", error);
-			// Handle the error, e.g., set an error state or display a message to the user
-		}finally {
-			setLoading(false);
-			setLoadingItem(null);
+				);
+				setPlaylistSongsSpotify(playlistSongs.data)
+				console.log(playlistSongs.data);
+				// setPlaylistSongsSpotify((prevSongs) => [...prevSongs, playlistSongs.data]);4
+			} catch (error) {
+				console.error("Error fetching playlists:", error);
+				// Handle the error, e.g., set an error state or display a message to the user
+			}finally {
+				setLoading(false);
+				setCollapsedSongs(true)
+			// setLoadingItem(null);
 		}
 	};
 
@@ -90,34 +93,36 @@ export default function SpotifyPlaylists(props) {
 					<button onClick={getPlaylists}>
 						Get from your playlists
 					</button>
-					<div className="justify-center flex flex-1 max-h-40 overflow-y-auto z-100 mt-2">
+					<div className="justify-center flex flex-1 max-h-60 overflow-y-auto z-100 mt-2">
 						<ul className="list-disc">
 							{spotifyPlaylist.map((item, index) => (
 								<div>
 									<li
 										className="m-4 flex items-center"
 										key={index}
-										onClick={() => getPlaylistSongs(item.id)}
 									>
 										<div className="flex items-center justify-between space-x-4 w-full">
 											<span>
 												{item.name} 
 												{ loadingItem === item.id && loading && <LoadingRadial /> }
+												{ loadingItem === item.id &&
+												<ul className="list-disc ml-8">
+													{ playlistSongsSpotify.map((item, index) => (
+														<li
+															className="m-4 flex items-center"
+															key={index}
+														>
+															{ item && `-> ${item.artist} - ${item.track}`}
+														</li>
+													))}
+												</ul>  }
 											</span>
-											{ collapsedSongs ? <PlusIcon className="h-6 w-6 text-blue-500"/> :  <Minus className="h-6 w-6 text-blue-500"/>}
+											{ (collapsedSongs) ? 
+												<PlusIcon className="h-6 w-6 text-blue-500" onClick={() => getPlaylistSongs(item.id)}/> : 
+												<MinusIcon className="h-6 w-6 text-blue-500"/>
+											}
 										</div>
-
 									</li>
-									<ul className="list-disc ml-8">
-										{ playlistSongsSpotify.map((item, index) => (
-										<li
-												className="m-4 flex items-center"
-												key={index}
-											>
-											{"->" + item.artist} - {item.track}
-										</li>
-									))}
-									</ul>
 								</div>
 							))}
 						</ul>
