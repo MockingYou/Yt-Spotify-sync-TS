@@ -29,32 +29,40 @@ const SpotifyPlaylistItem = (props) => {
 	};
 	return (
 		<Fragment>
-			<div className="flex items-center justify-between w-full m-2">
-				<span>
-					{props.name}
-					{loading && <LoadingRadial />}
-					{ !collapsedSongs && playlistSongsSpotify.map((item, index) => (
-						<SpotifyPlaylistSong
-							artist={item.artist}
-							track={item.track}
-							key={index}
+			<div className="items-center justify-between w-full m-2">
+				<div className="flex items-center justify-between w-full m-2">
+					<span className="flex items-center">
+						{" "}
+						{/* Use flex for the container */}
+						{props.name}
+						{loading && <LoadingRadial />}
+					</span>
+					{collapsedSongs ? (
+						<PlusIcon
+							className="h-6 w-6 text-blue-500 mr-4"
+							onClick={() =>
+								// playlistSongsSpotify ? setCollapsedSongs(false) :
+								getPlaylistSongs(props.id)
+							}
 						/>
-					))}
-				</span>
-				{collapsedSongs ? (
-					<PlusIcon
-						className="h-6 w-6 text-blue-500 mr-4"
-						onClick={ () =>  
-                            // playlistSongsSpotify ? setCollapsedSongs(false) : 
-                            getPlaylistSongs(props.id)
-                        }
-					/>
-				) : (
-					<MinusIcon
-						className="h-6 w-6 text-blue-500 mr-4"
-						onClick={() => setCollapsedSongs(true)}
-					/>
-				)}
+					) : (
+						<MinusIcon
+							className="h-6 w-6 text-blue-500 mr-4"
+							onClick={() => setCollapsedSongs(true)}
+						/>
+					)}
+				</div>
+
+				<div className="flex flex-col items-center justify-between w-full m-2">
+					{!collapsedSongs &&
+						playlistSongsSpotify.map((item, index) => (
+							<SpotifyPlaylistSong
+								artist={item.artist}
+								track={item.track}
+								key={index}
+							/>
+						))}
+				</div>
 			</div>
 		</Fragment>
 	);
