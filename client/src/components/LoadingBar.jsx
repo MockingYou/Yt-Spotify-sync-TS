@@ -15,7 +15,7 @@ const LoadingBar = ({ progress }) => {
         {/* Loading bar */}
       </div>
       <div className="item-center justify-center flex flex-1">
-        <p>{progress === 100 ? 'Loading Complete!' : `Loading... ${progress}%`}</p>
+        <p>{progress === 100 ? 'Loading Complete!' : (progress === 0 ? "" : `Loading... ${progress}%`)}</p>
       </div>
     </div>
   );
