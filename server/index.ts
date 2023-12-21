@@ -83,6 +83,7 @@ app.get("/spotify/callback", async (req, res) => {
 		const playlists = playlistsData.body.items.map(playlist => ({
 			id: playlist.id,
 			name: playlist.name,
+			images: playlist.images
 		}));
 	  	res.json(playlists);
 	} catch (error) {

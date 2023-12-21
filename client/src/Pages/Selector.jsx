@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment } from "react";
 
 import SelectorButton from "../components/SelectorButton";
-import SpotifyPlaylists from "../components/SpotifyPlaylists";
+import SpotifyPlaylists from "../components/SpotifyData/SpotifyPlaylists";
 import { faSpotify, faYoutube } from "@fortawesome/free-brands-svg-icons";
 
 const Selector = () => {

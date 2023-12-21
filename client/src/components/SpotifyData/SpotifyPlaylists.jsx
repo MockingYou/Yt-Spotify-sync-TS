@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Fragment } from "react";
 import axios from "axios";
-import LoadingBar from "./Loading/LoadingBar";
-import Button from "../components/Button";
-import SpotifyPlaylistItem from "./SpotifyData/SpotifyPlaylistItem";
+import LoadingBar from "../Loading/LoadingBar";
+import Button from "../Button";
+import SpotifyPlaylistItem from "./SpotifyPlaylistItem";
 
 export default function SpotifyPlaylists(props) {
   const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
@@ -61,7 +61,7 @@ export default function SpotifyPlaylists(props) {
   return (
     <Fragment>
       <div className="border-grey-200 flex justify-between rounded-lg border bg-gray-900">
-        <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-mono font-semibold text-white shadow-sm">
           <Button method={getPlaylists} name="Get from your playlists" />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
             {spotifyPlaylist.map((item, index) => (
@@ -70,9 +70,9 @@ export default function SpotifyPlaylists(props) {
           </div>
         </div>
 
-        <p className="text-white"> ---- or use a link ----</p>
+        <p className="text-white font-mono">  or use a link </p>
 
-        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-mono font-semibold text-white shadow-sm">
           <div className="item-center flex-1 flex-col justify-center ">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
