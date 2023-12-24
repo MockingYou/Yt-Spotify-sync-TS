@@ -7,9 +7,12 @@ import SpotifyPlaylistItem from "./SpotifyPlaylistItem";
 export default function SpotifyPlaylists(props) {
   const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
   const [playlistSongsYoutube, setPlaylistSongsYoutube] = useState([]);
-
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [playlistLink, setPlaylistLink] = useState("");
+  const [playlistName, setPlaylistName] = useState("");
+
+  let selectedPlaylists = []
+
 
   const clampToRange = (value, min, max) => {
     const clampValue = Math.max(min, Math.min(value, max));
@@ -46,6 +49,16 @@ export default function SpotifyPlaylists(props) {
     };
   };
 
+  const selectPlaylist = (id) => {
+    selectedPlaylists.push(id)
+    console.log(selectedPlaylists)
+  }
+
+  const removePlaylist = (id) => {
+    selectedPlaylists = selectedPlaylists.filter(item => item !== id)
+    console.log(selectedPlaylists)
+  }
+
   const getPlaylists = async () => {
     try {
       const playlistData = await axios.get(
@@ -64,8 +77,15 @@ export default function SpotifyPlaylists(props) {
         <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-mono font-semibold text-white shadow-sm">
           <Button method={getPlaylists} name="Get from your playlists" />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
+            <input
+              className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+              placeholder="Playlist name"
+              type="text"
+              value={playlistName}
+              onChange={(e) => setPlaylistName(e.target.value)}
+            ></input>
             {spotifyPlaylist.map((item, index) => (
-              <SpotifyPlaylistItem name={item.name} id={item.id} image={item.images[0].url} key={index} />
+              <SpotifyPlaylistItem selectPlaylist={() => selectPlaylist(item.id)} removePlaylist={() => removePlaylist(item.id)} name={item.name} id={item.id} image={item.images[0].url} key={index} />
             ))}
           </div>
         </div>

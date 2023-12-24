@@ -34,20 +34,21 @@ const Selector = () => {
 		}
 	};
 
-	const handleYoutubeLogin = () => {
+	const handleYoutubeLogin = async () => {
 		try {
 			const popup = window.open(
 				"http://localhost:8000/google/login",
 				"_blank",
 				`width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
 			);
-			window.addEventListener("message", (event) => {
-				if (event.data === "Success! You can now close the window.") {
+			const messageHandler = (event) => {
+				if (event.data == "Success! You can now close the window.") {
 					setYoutubeLoggedIn(true);
-					// Close the popup
 					popup.close();
+					window.removeEventListener("message", messageHandler);
 				}
-			});
+			};
+			window.addEventListener("message", messageHandler);
 		} catch (error) {
 			console.error("Error during Spotify login:", error);
 		}

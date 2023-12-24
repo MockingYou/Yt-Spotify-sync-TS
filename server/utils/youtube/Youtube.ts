@@ -20,8 +20,8 @@ export default class Youtube {
 
 	constructor() {
 		this.myAuthData = {
-			clientId: process.env.CLIENT_ID_GOOGLE || "",
-			clientSecret: process.env.CLIENT_SECRET_GOOGLE || "",
+			clientId: process.env.CLIENT_ID_YOUTUBE || "",
+			clientSecret: process.env.CLIENT_SECRET_YOUTUBE || "",
 			redirectUri: config.google.redirect_uris[0],
 			youtubeApi: new google.auth.OAuth2(),
 			youtubeApiKey: process.env.YOUTUBE_API_KEY || "",

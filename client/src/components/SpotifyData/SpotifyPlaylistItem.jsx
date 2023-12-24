@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 import LoadingRadial from "../Loading/LoadingRadial";
-import RotationIcon from "../Icons/RotationIcon"
+import RotationIcon from "../Icons/RotationIcon";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 
@@ -9,9 +9,11 @@ import SpotifyPlaylistSong from "./SpotifyPlaylistSong";
 
 const SpotifyPlaylistItem = (props) => {
   const [playlistSongsSpotify, setPlaylistSongsSpotify] = useState([]);
+  // const [selectedPlaylists, setSelectedPlaylists] = useState([])
   const [loadingItem, setLoadingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [collapsedSongs, setCollapsedSongs] = useState(true);
+  const [selected, setSelected] = useState(false);
 
   const getPlaylistSongs = async (playlistId) => {
     try {
@@ -30,12 +32,37 @@ const SpotifyPlaylistItem = (props) => {
       // setLoadingItem(null);
     }
   };
+
+  const handleCollapseExpand = () => {
+    if (collapsedSongs) {
+      getPlaylistSongs(props.id);
+    } else {
+      setCollapsedSongs(true);
+    }
+  };
+
   return (
     <Fragment>
       <div className="m-2 w-full items-center justify-between">
         <div className="m-2 flex w-full shrink-0 items-center justify-between">
           <span className="flex items-center">
-          <PlusCircleIcon className="mr-4 h-6 w-6 text-purple-500" />
+            {selected ? (
+              <MinusCircleIcon
+                className="mr-4 h-6 w-6 cursor-pointer text-purple-500"
+                onClick={() => {
+                  setSelected(false);
+                  props.removePlaylist();
+                }}
+              />
+            ) : (
+              <PlusCircleIcon
+                className="mr-4 h-6 w-6 cursor-pointer text-purple-500"
+                onClick={() => {
+                  setSelected(true);
+                  props.selectPlaylist();
+                }}
+              />
+            )}
 
             <img
               className="mr-4 h-14 w-16 rounded"
@@ -45,23 +72,10 @@ const SpotifyPlaylistItem = (props) => {
             {props.name}
             {loading && <LoadingRadial />}
           </span>
-          {collapsedSongs ? (
-        <RotationIcon handleClick={getPlaylistSongs(props.id) } />
-           
-
-            // <PlusIcon
-            //   className="mr-6 h-6 w-6 text-yellow-500"
-            //   onClick={() =>
-            //     // playlistSongsSpotify ? setCollapsedSongs(false) :
-            //     getPlaylistSongs(props.id)
-            //   }
-            // />
-          ) : (
-            <MinusIcon
-              className="mr-6 h-6 w-6 text-purple-500"
-              onClick={() => setCollapsedSongs(true)}
-            />
-          )}
+          <RotationIcon
+            handleClick={handleCollapseExpand}
+            collapsedSongs={collapsedSongs}
+          />
         </div>
         <div className="m-2 flex max-w-fit flex-col pl-4">
           {!collapsedSongs &&

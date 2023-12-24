@@ -76,21 +76,30 @@ app.get("/spotify/callback", async (req, res) => {
 
   app.get("/api/spotify/playlist", async (req, res) => {
 	try {
-	  	const userData = await spotify.myAuthData.spotifyApi.getMe();
-	  	const userId = userData.body.id;
-	  	const limit = 50;
-	  	const playlistsData = await spotify.myAuthData.spotifyApi.getUserPlaylists(userId, { limit });
-		const playlists = playlistsData.body.items.map(playlist => ({
-			id: playlist.id,
-			name: playlist.name,
-			images: playlist.images
-		}));
-	  	res.json(playlists);
-	} catch (error) {
-	  	console.error("Error fetching Spotify playlists:", error);
-	  	res.status(500).json({ error: `Error fetching Spotify playlists: ${error}` });
+	  const userData = await spotify.myAuthData.spotifyApi.getMe();
+	  const userId = userData.body.id;
+	  const limit = 50;
+	  const playlistsData = await spotify.myAuthData.spotifyApi.getUserPlaylists(userId, { limit });
+  
+	  const playlists = playlistsData.body.items.map(playlist => ({
+		id: playlist.id,
+		name: playlist.name,
+		images: playlist.images
+
+	  }));
+  
+	  res.json(playlists);
+	} catch (error: any) {
+	  console.error("Error fetching Spotify playlists:", error);
+	  if (error.statusCode === 429) {
+		const resetTime = error.headers['retry-after'] || error.headers['x-ratelimit-reset'];
+		console.log(`Rate limit exceeded. Retry after ${resetTime} seconds.`);
+	  } else {
+		res.status(500).json({ error: `Error fetching Spotify playlists: ${error.message}` });
+	  }
 	}
   });
+  
 
 app.get("/api/spotify/playlistTitle/:playlistId", async (req, res) => {
 	try {
@@ -152,9 +161,9 @@ app.get("/google/callback", async (req, res) => {
 		</script>
 	`;
 		res.send(successScript);
-	} catch (err) {
-		console.error("Error exchanging code for token:", err);
-		res.status(500).send("Error");
+	} catch (error) {
+		console.error("Error exchanging code for token:", error);
+		res.status(500).json({ error: `Error getting tokens: ${error}` });
 	}
 });
 
