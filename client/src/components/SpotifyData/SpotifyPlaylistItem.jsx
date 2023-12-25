@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Fragment } from "react";
 import LoadingRadial from "../Loading/LoadingRadial";
 import RotationIcon from "../Icons/RotationIcon";
-import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
-import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, MinusCircleIcon } from "@heroicons/react/24/outline";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
 
 import axios from "axios";
 import SpotifyPlaylistSong from "./SpotifyPlaylistSong";
