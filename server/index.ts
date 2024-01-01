@@ -80,14 +80,11 @@ app.get("/spotify/callback", async (req, res) => {
 	  const userId = userData.body.id;
 	  const limit = 50;
 	  const playlistsData = await spotify.myAuthData.spotifyApi.getUserPlaylists(userId, { limit });
-  
 	  const playlists = playlistsData.body.items.map(playlist => ({
 		id: playlist.id,
 		name: playlist.name,
 		images: playlist.images
-
 	  }));
-  
 	  res.json(playlists);
 	} catch (error: any) {
 	  console.error("Error fetching Spotify playlists:", error);
@@ -154,12 +151,11 @@ app.get("/google/callback", async (req, res) => {
 	const code: any = req.query.code;
 	try {
 		await youtube.getAuthToken(code);
-		// saveTokensToLocalStorage(token);
 		const successScript = `
-		<script>
-			window.opener.postMessage('Success! You can now close the window.', '*');
-		</script>
-	`;
+			<script>
+				window.opener.postMessage('Success! You can now close the window.', '*');
+			</script>
+		`;
 		res.send(successScript);
 	} catch (error) {
 		console.error("Error exchanging code for token:", error);
@@ -175,26 +171,9 @@ app.get("/google/protected", (req, res) => {
 	//   }
 });
 
-// GET endpoint to list all songs in a YouTube playlist
-// app.get("/api/youtube/playlist/:playlistId", async (req, res) => {
-// 	try {
-// 		const playlistId = req.params.playlistId;
-// 		const songs = await youtube.getPlaylistSongs(playlistId);
-// 		res.json(songs);
-// 	} catch (error) {
-// 		console.error("Error fetching playlist:", error);
-// 		res.status(500).json({ error: "Failed to fetch playlist" });
-// 	}
-// });
-
-
-app.get("/api/youtube/getSong", async (req, res) => {
-	try {
-		const songId = await youtube.searchSong({artist: "50 cent", track: "candy shop"});
-		res.send(songId)
-	} catch (error) {
-		res.status(500).json({ error: "Error searching song" });
-	}
+app.get("/api/youtube/playlists", async (req, res) => {
+	const playlists = await youtube.getYouTubePlaylists();
+	res.json(playlists)
 })
 
 app.get("/api/youtube/get-length/:playlistId", async (req, res) => {

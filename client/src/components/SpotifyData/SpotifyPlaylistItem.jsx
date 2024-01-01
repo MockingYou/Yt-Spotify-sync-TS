@@ -9,8 +9,6 @@ import SpotifyPlaylistSong from "./SpotifyPlaylistSong";
 
 const SpotifyPlaylistItem = (props) => {
   const [playlistSongsSpotify, setPlaylistSongsSpotify] = useState([]);
-  // const [selectedPlaylists, setSelectedPlaylists] = useState([])
-  const [loadingItem, setLoadingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [collapsedSongs, setCollapsedSongs] = useState(true);
   const [selected, setSelected] = useState(false);
@@ -18,28 +16,26 @@ const SpotifyPlaylistItem = (props) => {
   const getPlaylistSongs = async (playlistId) => {
     try {
       setLoading(true);
-      setLoadingItem(playlistId);
       const playlistSongs = await axios.get(
         `http://localhost:8000/api/spotify/playlist-songs/${playlistId}`,
       );
       setPlaylistSongsSpotify(playlistSongs.data);
     } catch (error) {
       console.error("Error fetching playlists:", error);
-      // Handle the error, e.g., set an error state or display a message to the user
     } finally {
       setLoading(false);
       setCollapsedSongs(false);
-      // setLoadingItem(null);
     }
   };
 
   const handleCollapseExpand = () => {
-    if (collapsedSongs) {
+    if (collapsedSongs && playlistSongsSpotify.length === 0) {
       getPlaylistSongs(props.id);
     } else {
-      setCollapsedSongs(true);
+      setCollapsedSongs(!collapsedSongs);
     }
   };
+  
 
   return (
     <Fragment>

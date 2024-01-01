@@ -6,13 +6,15 @@ import SpotifyPlaylistItem from "./SpotifyPlaylistItem";
 
 export default function SpotifyPlaylists(props) {
   const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
+  const [youtubePlaylist, setYoutubePlaylist] = useState([]);
+
   const [playlistSongsYoutube, setPlaylistSongsYoutube] = useState([]);
   const [filteredPlaylist, setFilteredPlaylist] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [playlistLink, setPlaylistLink] = useState("");
   const [playlistName, setPlaylistName] = useState("");
 
-  let selectedPlaylists = []
+  let selectedPlaylists = [];
 
   useEffect(() => {
     setFilteredPlaylist(spotifyPlaylist);
@@ -25,13 +27,23 @@ export default function SpotifyPlaylists(props) {
 
   const convertPlaylist = async () => {
     setPlaylistSongsYoutube([]);
-    const playlistId = playlistLink.split("=")[1];
+    if (playlistLink) {
+      const playlistId = playlistLink.split("=")[1];
+      loadPlaylist(playlistId);
+    } else {
+      selectedPlaylists.forEach((item, index) => {
+        loadPlaylist(item);
+      });
+    }
+  };
+
+  const loadPlaylist = async (playlistId) => {
+    console.log(playlistId);
     const playlistLength = await axios(
       `http://localhost:8000/api/youtube/get-length/${playlistId}`,
     );
     console.log(playlistLength.data);
     let i = 0;
-    // (playlistLength.data + i) / 100
     const eventSource = new EventSource(
       `http://localhost:8000/api/spotify/add-songs/${playlistId}`,
     );
@@ -52,44 +64,57 @@ export default function SpotifyPlaylists(props) {
     };
   };
 
-  
-    const getPlaylists = async () => {
-      try {
-        const playlistData = await axios.get(
-          "http://localhost:8000/api/spotify/playlist",
-        );
-        setSpotifyPlaylist(playlistData.data);
-        console.log(playlistData.data);
-      } catch (error) {
-        console.error("Error fetching playlists:", error);
-      }
-    };
+  const getPlaylistsSpotify = async () => {
+    try {
+      const playlistData = await axios.get(
+        "http://localhost:8000/api/spotify/playlist",
+      );
+      setSpotifyPlaylist(playlistData.data);
+      console.log(playlistData.data);
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
+  };
+
+  const getPlaylistsYoutube = async () => {
+    try {
+      const playlistData = await axios.get(
+        "http://localhost:8000/api/youtube/playlists",
+      );
+      setYoutubePlaylist(playlistData.data);
+      console.log(playlistData.data);
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
+  };
+
+
   const selectPlaylist = (id) => {
-    selectedPlaylists.push(id)
-    console.log(selectedPlaylists)
-  }
+    selectedPlaylists.push(id);
+    console.log(selectedPlaylists);
+  };
 
   const removePlaylist = (id) => {
-    selectedPlaylists = selectedPlaylists.filter(item => item !== id)
-    console.log(selectedPlaylists)
-  }
+    selectedPlaylists = selectedPlaylists.filter((item) => item !== id);
+    console.log(selectedPlaylists);
+  };
 
   const handleSearchChange = (event) => {
     const newSearchTerm = event.target.value;
-    console.log(newSearchTerm)
+    console.log(newSearchTerm);
     setPlaylistName(newSearchTerm);
 
-    const filteredData = spotifyPlaylist.filter((item) => 
-        item.name.toLowerCase().includes(newSearchTerm.toLowerCase())      
-    )
-    console.log(filteredData)
+    const filteredData = spotifyPlaylist.filter((item) =>
+      item.name.toLowerCase().includes(newSearchTerm.toLowerCase()),
+    );
+    console.log(filteredData);
     setFilteredPlaylist(filteredData);
-    };
+  };
   return (
     <Fragment>
       <div className="border-grey-200 flex justify-between rounded-lg border bg-gray-900">
-        <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-mono font-semibold text-white shadow-sm">
-          <Button method={getPlaylists} name="Get from your playlists" />
+        <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
+          <Button method={getPlaylistsYoutube} name="Get from your playlists" />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -97,17 +122,27 @@ export default function SpotifyPlaylists(props) {
               type="text"
               value={playlistName}
               onChange={handleSearchChange}
-              onInput={handleSearchChange} 
+              onInput={handleSearchChange}
             ></input>
             {filteredPlaylist.map((item, index) => (
-              <SpotifyPlaylistItem selectPlaylist={() => selectPlaylist(item.id)} removePlaylist={() => removePlaylist(item.id)} name={item.name} id={item.id} image={item.images[0].url} key={index} />
+              <SpotifyPlaylistItem
+                selectPlaylist={() => selectPlaylist(item.id)}
+                removePlaylist={() => removePlaylist(item.id)}
+                name={item.name}
+                id={item.id}
+                image={item.images[0].url}
+                key={index}
+              />
             ))}
+          </div>
+          <div className="float-right">
+            <Button method={convertPlaylist} name="Convert Playlist" />
           </div>
         </div>
 
-        <p className="text-white font-mono">  or use a link </p>
+        <p className="font-mono text-white"> or use a link </p>
 
-        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 text-sm font-mono font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
           <div className="item-center flex-1 flex-col justify-center ">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"

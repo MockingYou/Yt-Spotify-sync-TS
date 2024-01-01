@@ -46,32 +46,77 @@ export default class Youtube {
 
 	public getAuthToken = async (code: string): Promise<Token> => {
 		try {
-			const tokenResponse = await this.myAuthData.youtubeApi.getToken(
-				code,
-			);
-			const youtubeToken = tokenResponse.tokens.access_token as string;
-			console.log(`Successfully retrieved youtube access token.`);
-
-			this.myAuthData.youtubeApi.setCredentials({
-				access_token: youtubeToken,
-			});
-
-			// Set credentials on the 'youtube' instance
-			this.youtube = google.youtube({
-				version: "v3",
-				auth: this.myAuthData.youtubeApi,
-			});
-
-			return (this.defaultToken = {
-				access_token: youtubeToken,
-				token_source: "youtube_token",
-			});
+		  const tokenResponse = await this.myAuthData.youtubeApi.getToken(code);
+		  const youtubeToken = tokenResponse.tokens.access_token as string;
+		  console.log(`Successfully retrieved YouTube access token.`);
+		  this.myAuthData.youtubeApi.setCredentials({
+			access_token: youtubeToken,
+		  });
+		  this.youtube = google.youtube({
+			version: "v3",
+			auth: this.myAuthData.youtubeApi,
+		  });
+		  return {
+			access_token: youtubeToken,
+			token_source: "youtube_token",
+		  };
 		} catch (error) {
-			console.error("Error retrieving youtube access token:", error);
-			throw new Error("Failed to retrieve youtube access token");
+		  console.error("Error retrieving YouTube access token:", error);
+		  throw new Error("Failed to retrieve YouTube access token");
 		}
-	};
+	  };
+	  
 
+	  public getChannelId = async (): Promise<string | null> => {
+		try {
+		  const channelsResponse = await this.youtube.channels.list({
+			part: ['id'],
+			mine: true,
+		  });
+	  
+		  const items = channelsResponse.data.items;
+	  
+		  if (items && items.length > 0) {
+			const channelId = items[0].id;
+			console.log('Channel ID:', channelId);
+			return channelId as string;
+		  } else {
+			console.error('No channels found for the authenticated user.');
+			return null;
+		  }
+		} catch (error) {
+		  console.error("Error getting channel id:", error);
+		  return null;
+		}
+	  };
+	  
+	  public getYouTubePlaylists = async () => {
+		try {
+		  const channelId = await this.getChannelId();
+		  if (!channelId) {
+			// Handle the case where channelId is null
+			console.error('Unable to fetch playlists. Channel ID is null.');
+			return null;
+		  }
+	  
+		  const playlistsResponse = await this.youtube.playlists.list({
+			part: ['snippet'],
+			channelId: channelId,
+		  });
+	  
+		  const playlists = playlistsResponse.data.items?.map(playlist => ({
+			id: playlist.id,
+			name: playlist.snippet?.title,
+			images: playlist.snippet?.thumbnails?.default?.url
+		  }));
+	  
+		  console.log('YouTube Playlists:', playlists);
+		  return playlists;
+		} catch (error: any) {
+		  console.error('Error fetching YouTube playlists:', error.message);
+		  throw error;
+		}
+	  };
 	public getPlaylistTitle = async (playlistId: string): Promise<string> => {
 		try {
 			const response = await this.youtube.playlists.list({
