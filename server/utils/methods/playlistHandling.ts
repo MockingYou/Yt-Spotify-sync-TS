@@ -41,7 +41,6 @@ async function createSpotifyPlaylist(
 						})}\n\n`,
 					);
 				}
-				// Handle the error if needed
 			}
 			totalSongs += items.length;
 			nextPageToken = newNextPageToken as string;

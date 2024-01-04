@@ -46,77 +46,78 @@ export default class Youtube {
 
 	public getAuthToken = async (code: string): Promise<Token> => {
 		try {
-		  const tokenResponse = await this.myAuthData.youtubeApi.getToken(code);
-		  const youtubeToken = tokenResponse.tokens.access_token as string;
-		  console.log(`Successfully retrieved YouTube access token.`);
-		  this.myAuthData.youtubeApi.setCredentials({
-			access_token: youtubeToken,
-		  });
-		  this.youtube = google.youtube({
-			version: "v3",
-			auth: this.myAuthData.youtubeApi,
-		  });
-		  return {
-			access_token: youtubeToken,
-			token_source: "youtube_token",
-		  };
+			const tokenResponse = await this.myAuthData.youtubeApi.getToken(
+				code,
+			);
+			const youtubeToken = tokenResponse.tokens.access_token as string;
+			console.log(`Successfully retrieved YouTube access token.`);
+			this.myAuthData.youtubeApi.setCredentials({
+				access_token: youtubeToken,
+			});
+			this.youtube = google.youtube({
+				version: "v3",
+				auth: this.myAuthData.youtubeApi,
+			});
+			return {
+				access_token: youtubeToken,
+				token_source: "youtube_token",
+			};
 		} catch (error) {
-		  console.error("Error retrieving YouTube access token:", error);
-		  throw new Error("Failed to retrieve YouTube access token");
+			console.error("Error retrieving YouTube access token:", error);
+			throw new Error("Failed to retrieve YouTube access token");
 		}
-	  };
-	  
+	};
 
-	  public getChannelId = async (): Promise<string | null> => {
+	public getChannelId = async (): Promise<string | null> => {
 		try {
-		  const channelsResponse = await this.youtube.channels.list({
-			part: ['id'],
-			mine: true,
-		  });
-	  
-		  const items = channelsResponse.data.items;
-	  
-		  if (items && items.length > 0) {
-			const channelId = items[0].id;
-			console.log('Channel ID:', channelId);
-			return channelId as string;
-		  } else {
-			console.error('No channels found for the authenticated user.');
-			return null;
-		  }
+			const channelsResponse = await this.youtube.channels.list({
+				part: ["id"],
+				mine: true,
+			});
+
+			const items = channelsResponse.data.items;
+
+			if (items && items.length > 0) {
+				const channelId = items[0].id;
+				console.log("Channel ID:", channelId);
+				return channelId as string;
+			} else {
+				console.error("No channels found for the authenticated user.");
+				return null;
+			}
 		} catch (error) {
-		  console.error("Error getting channel id:", error);
-		  return null;
-		}
-	  };
-	  
-	  public getYouTubePlaylists = async () => {
-		try {
-		  const channelId = await this.getChannelId();
-		  if (!channelId) {
-			// Handle the case where channelId is null
-			console.error('Unable to fetch playlists. Channel ID is null.');
+			console.error("Error getting channel id:", error);
 			return null;
-		  }
-	  
-		  const playlistsResponse = await this.youtube.playlists.list({
-			part: ['snippet'],
-			channelId: channelId,
-		  });
-	  
-		  const playlists = playlistsResponse.data.items?.map(playlist => ({
-			id: playlist.id,
-			name: playlist.snippet?.title,
-			images: playlist.snippet?.thumbnails?.default?.url
-		  }));
-	  
-		  console.log('YouTube Playlists:', playlists);
-		  return playlists;
-		} catch (error: any) {
-		  console.error('Error fetching YouTube playlists:', error.message);
-		  throw error;
 		}
-	  };
+	};
+
+	public getYouTubePlaylists = async () => {
+		try {
+			const channelId = await this.getChannelId();
+			if (!channelId) {
+				// Handle the case where channelId is null
+				console.error("Unable to fetch playlists. Channel ID is null.");
+				return null;
+			}
+
+			const playlistsResponse = await this.youtube.playlists.list({
+				part: ["snippet"],
+				channelId: channelId,
+			});
+
+			const playlists = playlistsResponse.data.items?.map((playlist) => ({
+				id: playlist.id,
+				name: playlist.snippet?.title,
+				images: playlist.snippet?.thumbnails?.default?.url,
+			}));
+
+			console.log("YouTube Playlists:", playlists);
+			return playlists;
+		} catch (error: any) {
+			console.error("Error fetching YouTube playlists:", error.message);
+			throw error;
+		}
+	};
 	public getPlaylistTitle = async (playlistId: string): Promise<string> => {
 		try {
 			const response = await this.youtube.playlists.list({
@@ -172,9 +173,18 @@ export default class Youtube {
 		const videoId = snippet?.resourceId?.videoId;
 		try {
 			const details = await this.getVideoDetails(videoId as string);
-			const filter = typeof details == "string" ? details : checkFullName(details.snippet);
-			const track = typeof filter == "string" ? "Failed to search for video" : normalizeString(filter.track);
-			const artist = typeof filter == "string" ? `${snippet?.title}` : normalizeString(filter.artist);
+			const filter =
+				typeof details == "string"
+					? details
+					: checkFullName(details.snippet);
+			const track =
+				typeof filter == "string"
+					? "Failed to search for video"
+					: normalizeString(filter.track);
+			const artist =
+				typeof filter == "string"
+					? `${snippet?.title}`
+					: normalizeString(filter.artist);
 			song = { track, artist };
 		} catch (error) {
 			console.error("Error extracting songs from YouTube:", error);
@@ -190,20 +200,20 @@ export default class Youtube {
 		return response.data.pageInfo?.totalResults as number;
 	};
 
-  public getPlaylistSongs = async (
-    playlistId: string,
-    nextPageToken: string | null = null,
-    totalSongs: number = 0,
-  ): Promise<K> => {
-    	const maxResults = 50;
-    	const response = await this.youtube.playlistItems.list({
-    	  part: ["snippet"],
-    	  playlistId: playlistId,
-    	  maxResults: maxResults,
-    	  pageToken: nextPageToken,
-    	} as youtube_v3.Params$Resource$Playlistitems$List);
-		return response.data
-  }
+	public getPlaylistSongs = async (
+		playlistId: string,
+		nextPageToken: string | null = null,
+		totalSongs: number = 0,
+	): Promise<K> => {
+		const maxResults = 50;
+		const response = await this.youtube.playlistItems.list({
+			part: ["snippet"],
+			playlistId: playlistId,
+			maxResults: maxResults,
+			pageToken: nextPageToken,
+		} as youtube_v3.Params$Resource$Playlistitems$List);
+		return response.data;
+	};
 
 	public createPlaylist = async (playlistTitle: string): Promise<string> => {
 		try {
@@ -225,7 +235,6 @@ export default class Youtube {
 			if (response.status !== 200) {
 				return `Error creating playlist. Status: ${response.status}`;
 			}
-
 			console.log("New playlist created:", response.data);
 			return response.data.id as string;
 		} catch (error) {

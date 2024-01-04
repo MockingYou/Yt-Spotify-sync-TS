@@ -17,7 +17,7 @@ const SpotifyPlaylistItem = (props) => {
     try {
       setLoading(true);
       const playlistSongs = await axios.get(
-        `http://localhost:8000/api/spotify/playlist-songs/${playlistId}`,
+        `http://localhost:8000/api/youtube/playlist-songs/${playlistId}`,
       );
       setPlaylistSongsSpotify(playlistSongs.data);
     } catch (error) {
@@ -36,7 +36,6 @@ const SpotifyPlaylistItem = (props) => {
     }
   };
   
-
   return (
     <Fragment>
       <div className="m-2 w-full items-center justify-between">

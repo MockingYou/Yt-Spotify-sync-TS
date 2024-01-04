@@ -17,8 +17,8 @@ export default function SpotifyPlaylists(props) {
   let selectedPlaylists = [];
 
   useEffect(() => {
-    setFilteredPlaylist(spotifyPlaylist);
-  }, [spotifyPlaylist]);
+    setFilteredPlaylist(youtubePlaylist);  // Change here
+  }, [youtubePlaylist]);
   const clampToRange = (value, min, max) => {
     const clampValue = Math.max(min, Math.min(value, max));
     const mappedValue = ((clampValue - min) / max - min) * 100;
@@ -104,7 +104,7 @@ export default function SpotifyPlaylists(props) {
     console.log(newSearchTerm);
     setPlaylistName(newSearchTerm);
 
-    const filteredData = spotifyPlaylist.filter((item) =>
+    const filteredData = youtubePlaylist.filter((item) =>  // Change here
       item.name.toLowerCase().includes(newSearchTerm.toLowerCase()),
     );
     console.log(filteredData);
@@ -130,7 +130,7 @@ export default function SpotifyPlaylists(props) {
                 removePlaylist={() => removePlaylist(item.id)}
                 name={item.name}
                 id={item.id}
-                image={item.images[0].url}
+                image={item.images}
                 key={index}
               />
             ))}

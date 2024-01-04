@@ -182,6 +182,39 @@ app.get("/api/youtube/get-length/:playlistId", async (req, res) => {
     res.json(response)
 })
 
+app.get("/api/youtube/playlist-songs/:playlistId", async (req, res) => {
+	try {
+		const playlistId: string = req.params.playlistId;
+		let totalSongs = 0
+		let nextPageToken: string | null = null
+		let songsArray: any = []
+		do {
+			const { items, nextPageToken: newNextPageToken } = await youtube.getPlaylistSongs(playlistId, nextPageToken);
+
+			if (!items) {
+				console.error("Invalid response: items is undefined");
+				return;
+			}
+			for (const item of items) {
+				try {
+					const song = await youtube.extractSongsFromYouTube(item);
+					songsArray.push(song)
+				} catch (error) {
+					console.log(`Error processing song '${item}':`, error);
+				}
+			}
+			totalSongs += items.length;
+			nextPageToken = newNextPageToken as string;
+            console.log(nextPageToken)
+		} while (nextPageToken);
+		res.json(songsArray);
+	} catch (error: any) {
+		res.status(500).json({
+			error: `Error fetching playlist songs: ${error}`,
+		});
+	}
+});
+
 app.post("/api/youtube/add-songs/:playlistId", async (req, res) => {
 	try {
 		const spotifyPlaylistId: string = req.params.playlistId;
