@@ -74,7 +74,7 @@ app.get("/spotify/callback", async (req, res) => {
   });
 
 
-  app.get("/api/spotify/playlist", async (req, res) => {
+  app.get("/api/spotify/playlists", async (req, res) => {
 	try {
 	  const userData = await spotify.myAuthData.spotifyApi.getMe();
 	  const userId = userData.body.id;

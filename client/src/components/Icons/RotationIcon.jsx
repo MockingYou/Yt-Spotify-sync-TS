@@ -7,8 +7,6 @@ const RotationIcon = (props) => {
   return (
     <div
       className={`rotate-item ${!props.collapsedSongs ? "rotate-90" : ""} inline-block cursor-pointer p-4 transition-transform duration-300 ease-in-out`}
-      // onMouseEnter={() => setIsHovered(true)}
-      // onMouseLeave={() => setIsHovered(false)}
     >
       <ChevronRightIcon
         onClick={props.onClickHandle}
