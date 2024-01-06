@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import config from "./utils/config.json";
 import Spotify from "./utils/spotify/Spotify";
 import Youtube from "./utils/youtube/Youtube";
-import { createSpotifyPlaylist } from "./utils/methods/playlistHandling";
+import { createSpotifyPlaylist, getAllPlaylistSongs } from "./utils/methods/playlistHandling";
 import { generateRandomKey } from "./utils/methods/generateRandomKey";
 import jwt from "jsonwebtoken";
 import AuthData from "./utils/interfaces/AuthData";
@@ -185,28 +185,7 @@ app.get("/api/youtube/get-length/:playlistId", async (req, res) => {
 app.get("/api/youtube/playlist-songs/:playlistId", async (req, res) => {
 	try {
 		const playlistId: string = req.params.playlistId;
-		let totalSongs = 0
-		let nextPageToken: string | null = null
-		let songsArray: any = []
-		do {
-			const { items, nextPageToken: newNextPageToken } = await youtube.getPlaylistSongs(playlistId, nextPageToken);
-
-			if (!items) {
-				console.error("Invalid response: items is undefined");
-				return;
-			}
-			for (const item of items) {
-				try {
-					const song = await youtube.extractSongsFromYouTube(item);
-					songsArray.push(song)
-				} catch (error) {
-					console.log(`Error processing song '${item}':`, error);
-				}
-			}
-			totalSongs += items.length;
-			nextPageToken = newNextPageToken as string;
-            console.log(nextPageToken)
-		} while (nextPageToken);
+		let songsArray = getAllPlaylistSongs(playlistId, youtube)
 		res.json(songsArray);
 	} catch (error: any) {
 		res.status(500).json({

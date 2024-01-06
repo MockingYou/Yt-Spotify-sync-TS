@@ -3,7 +3,6 @@ import axios from "axios";
 export const handleLogin = async (
   url: string,
   setLoggedIn: Function,
-  event: any,
 ) => {
   const popupWidth: number = 600;
   const popupHeight: number = 900;
@@ -15,7 +14,7 @@ export const handleLogin = async (
       "_blank",
       `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
-    const messageHandler = () => {
+    const messageHandler = (event: MessageEvent) => {
       if (event.data == "Success! You can now close the window.") {
         setLoggedIn(true);
         popup?.close();
@@ -34,10 +33,10 @@ export const clampToRange = (value: number, min: number, max: number) => {
   return mappedValue;
 };
 
-export const getPlaylist = async (url: string, setPalylist: Function) => {
+export const getPlaylist = async (url: string, setPlaylist: Function) => {
   try {
     const playlistData = await axios.get(url);
-    setPalylist(playlistData.data);
+    setPlaylist(playlistData.data);
     console.log(playlistData.data);
   } catch (error) {
     console.error("Error fetching playlists:", error);

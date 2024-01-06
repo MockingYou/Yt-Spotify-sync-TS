@@ -11,7 +11,7 @@ const RotationIcon = (props) => {
       // onMouseLeave={() => setIsHovered(false)}
     >
       <ChevronRightIcon
-        onClick={props.handleClick}
+        onClick={props.onClickHandle}
         className="m-4 mr-6 h-6 w-6 text-purple-500"
       />
     </div>

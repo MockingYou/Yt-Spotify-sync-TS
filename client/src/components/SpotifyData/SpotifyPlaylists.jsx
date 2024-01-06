@@ -3,8 +3,9 @@ import axios from "axios";
 import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
 import SpotifyPlaylistItem from "./SpotifyPlaylistItem";
+import { getPlaylist } from "../../HelperFunctions/helperFunction"
 
-export default function SpotifyPlaylists(props) {
+export default function SpotifyPlaylists() {
   const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
   const [youtubePlaylist, setYoutubePlaylist] = useState([]);
 
@@ -19,6 +20,7 @@ export default function SpotifyPlaylists(props) {
   useEffect(() => {
     setFilteredPlaylist(youtubePlaylist);  // Change here
   }, [youtubePlaylist]);
+
   const clampToRange = (value, min, max) => {
     const clampValue = Math.max(min, Math.min(value, max));
     const mappedValue = ((clampValue - min) / max - min) * 100;
@@ -37,15 +39,18 @@ export default function SpotifyPlaylists(props) {
     }
   };
 
-  const loadPlaylist = async (playlistId) => {
-    console.log(playlistId);
+  const getPlaylistLength = async (playlistSource, playlistId) => {
     const playlistLength = await axios(
-      `http://localhost:8000/api/youtube/get-length/${playlistId}`,
+      `http://localhost:8000/api/${playlistSource}/get-length/${playlistId}`,
     );
-    console.log(playlistLength.data);
+    return playlistLength
+  }
+
+  const loadPlaylist = async (playlistSource, playlistDestination, playlistId) => {
+    const playlistLength = await getPlaylistLength(playlistSource, playlistId)
     let i = 0;
     const eventSource = new EventSource(
-      `http://localhost:8000/api/spotify/add-songs/${playlistId}`,
+      `http://localhost:8000/api/${playlistDestination}/add-songs/${playlistId}`,
     );
     if (typeof EventSource !== "undefined") {
       console.log("macarena");
@@ -114,7 +119,7 @@ export default function SpotifyPlaylists(props) {
     <Fragment>
       <div className="border-grey-200 flex justify-between rounded-lg border bg-gray-900">
         <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
-          <Button method={getPlaylistsYoutube} name="Get from your playlists" />
+          <Button onClickHandle={ getPlaylist } name="Get from your playlists" />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -136,13 +141,13 @@ export default function SpotifyPlaylists(props) {
             ))}
           </div>
           <div className="float-right">
-            <Button method={convertPlaylist} name="Convert Playlist" />
+            <Button onClickHandle={convertPlaylist} name="Convert Playlist" />
           </div>
         </div>
 
-        <p className="font-mono text-white"> or use a link </p>
+        <p className="font-heebo text-white"> or use a link </p>
 
-        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-heebo text-sm font-semibold text-white shadow-sm">
           <div className="item-center flex-1 flex-col justify-center ">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -152,7 +157,7 @@ export default function SpotifyPlaylists(props) {
               onChange={(e) => setPlaylistLink(e.target.value)}
             ></input>
             <div className="float-right">
-              <Button method={convertPlaylist} name="Convert Playlist" />
+              <Button onClickHandle={convertPlaylist} name="Convert Playlist" />
             </div>
           </div>
           <LoadingBar progress={loadingProgress} />
