@@ -13,13 +13,13 @@ const Selector = () => {
 		{
 		  name: "Spotify",
 		  icon: faSpotify,
-		  handleLogin: () => handleLogin("http://localhost:8000/spotify/login", setSpotifyLoggedIn), // Corrected
+		  handleLogin: () => handleLogin("http://localhost:8000/spotify/login", setSpotifyLoggedIn),
 		  loggedIn: spotifyLoggedIn,
 		},
 		{
 		  name: "Youtube",
 		  icon: faYoutube,
-		  handleLogin: () => handleLogin("http://localhost:8000/youtube/login", setYoutubeLoggedIn), // Corrected
+		  handleLogin: () => handleLogin("http://localhost:8000/youtube/login", setYoutubeLoggedIn),
 		  loggedIn: youtubeLoggedIn,
 		},
 		{
@@ -41,7 +41,8 @@ const Selector = () => {
 				icon={data.icon}
 				handleLogin={data.handleLogin}
 				loggedIn={data.loggedIn}
-				to="/sourcecontrol"
+				route="/sourcecontrol"
+				source={true}
 			  />
 			))}
 		  </div>
