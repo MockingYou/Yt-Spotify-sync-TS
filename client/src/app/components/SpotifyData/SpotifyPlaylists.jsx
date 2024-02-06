@@ -3,9 +3,8 @@ import axios from "axios";
 import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
 import SpotifyPlaylistItem from "./SpotifyPlaylistItem";
-import { getPlaylist } from "../../HelperFunctions/helperFunction"
 
-export default function SpotifyPlaylists() {
+export default function SpotifyPlaylists(props) {
   const [spotifyPlaylist, setSpotifyPlaylist] = useState([]);
   const [youtubePlaylist, setYoutubePlaylist] = useState([]);
 
@@ -18,9 +17,8 @@ export default function SpotifyPlaylists() {
   let selectedPlaylists = [];
 
   useEffect(() => {
-    setFilteredPlaylist(youtubePlaylist);  // Change here
+    setFilteredPlaylist(youtubePlaylist); // Change here
   }, [youtubePlaylist]);
-
   const clampToRange = (value, min, max) => {
     const clampValue = Math.max(min, Math.min(value, max));
     const mappedValue = ((clampValue - min) / max - min) * 100;
@@ -39,18 +37,15 @@ export default function SpotifyPlaylists() {
     }
   };
 
-  const getPlaylistLength = async (playlistSource, playlistId) => {
+  const loadPlaylist = async (playlistId) => {
+    console.log(playlistId);
     const playlistLength = await axios(
-      `http://localhost:8000/api/${playlistSource}/get-length/${playlistId}`,
+      `http://localhost:8000/api/youtube/get-length/${playlistId}`,
     );
-    return playlistLength
-  }
-
-  const loadPlaylist = async (playlistSource, playlistDestination, playlistId) => {
-    const playlistLength = await getPlaylistLength(playlistSource, playlistId)
+    console.log(playlistLength.data);
     let i = 0;
     const eventSource = new EventSource(
-      `http://localhost:8000/api/${playlistDestination}/add-songs/${playlistId}`,
+      `http://localhost:8000/api/spotify/add-songs/${playlistId}`,
     );
     if (typeof EventSource !== "undefined") {
       console.log("macarena");
@@ -93,7 +88,6 @@ export default function SpotifyPlaylists() {
     }
   };
 
-
   const selectPlaylist = (id) => {
     selectedPlaylists.push(id);
     console.log(selectedPlaylists);
@@ -109,8 +103,10 @@ export default function SpotifyPlaylists() {
     console.log(newSearchTerm);
     setPlaylistName(newSearchTerm);
 
-    const filteredData = youtubePlaylist.filter((item) =>  // Change here
-      item.name.toLowerCase().includes(newSearchTerm.toLowerCase()),
+    const filteredData = youtubePlaylist.filter(
+      (
+        item, // Change here
+      ) => item.name.toLowerCase().includes(newSearchTerm.toLowerCase()),
     );
     console.log(filteredData);
     setFilteredPlaylist(filteredData);
@@ -119,7 +115,7 @@ export default function SpotifyPlaylists() {
     <Fragment>
       <div className="border-grey-200 flex justify-between rounded-lg border bg-gray-900">
         <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
-          <Button onClickHandle={ getPlaylist } name="Get from your playlists" />
+          <Button method={getPlaylistsYoutube} name="Get from your playlists" />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -141,13 +137,13 @@ export default function SpotifyPlaylists() {
             ))}
           </div>
           <div className="float-right">
-            <Button onClickHandle={convertPlaylist} name="Convert Playlist" />
+            <Button method={convertPlaylist} name="Convert Playlist" />
           </div>
         </div>
 
-        <p className="font-heebo text-white"> or use a link </p>
+        <p className="font-mono text-white"> or use a link </p>
 
-        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-heebo text-sm font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
           <div className="item-center flex-1 flex-col justify-center ">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -157,19 +153,23 @@ export default function SpotifyPlaylists() {
               onChange={(e) => setPlaylistLink(e.target.value)}
             ></input>
             <div className="float-right">
-              <Button onClickHandle={convertPlaylist} name="Convert Playlist" />
+              <Button method={convertPlaylist} name="Convert Playlist" />
             </div>
           </div>
-          <LoadingBar progress={loadingProgress} />
-          <div className="z-100 flex max-h-40 flex-1 justify-center overflow-y-auto">
-            <ul className="list-disc">
-              {playlistSongsYoutube.map((item, index) => (
-                <li className="m-4" key={index}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {loadingProgress < 100 && (
+            <div>
+              <LoadingBar progress={loadingProgress} />
+              <div className="z-100 flex max-h-40 flex-1 justify-center overflow-y-auto">
+                <ul className="list-disc">
+                  {playlistSongsYoutube.map((item, index) => (
+                    <li className="m-4" key={index}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Fragment>

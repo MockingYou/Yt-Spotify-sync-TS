@@ -7,7 +7,7 @@ export default function Home() {
 			<main className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
 				<div className="text-center">
 					<h1 className="mt-4 text-3xl font-mono font-bold tracking-tight text-gray-900 sm:text-5xl">
-						Transfer Playlists Between Spotify and Youtube{" "}
+						Playlist Converter{" "}
 					</h1>
 					<p className="mt-6 text-base leading-7 text-gray-600">
 						Transfer your music library from Spotify to Youtube!

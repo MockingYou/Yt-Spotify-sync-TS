@@ -4,13 +4,25 @@ import dotenv from "dotenv";
 import config from "./utils/config.json";
 import Spotify from "./utils/spotify/Spotify";
 import Youtube from "./utils/youtube/Youtube";
-import { createSpotifyPlaylist, getAllPlaylistSongs } from "./utils/methods/playlistHandling";
+import { createSpotifyPlaylist } from "./utils/methods/playlistHandling";
 import { generateRandomKey } from "./utils/methods/generateRandomKey";
 import jwt from "jsonwebtoken";
 import AuthData from "./utils/interfaces/AuthData";
 dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 8000;
+
+const crypto = require('crypto');
+
+// Generate a random string of 64 characters
+const generateJwtSecret = () => {
+    return crypto.randomBytes(32).toString('hex');
+};
+
+// Generate JWT secret
+const jwtSecret = generateJwtSecret();
+
+
 const spotify_scopes = config.spotify.scopes;
 
 const spotify = new Spotify();
@@ -150,7 +162,9 @@ app.get("/google/login", (req, res) => {
 app.get("/google/callback", async (req, res) => {
 	const code: any = req.query.code;
 	try {
-		await youtube.getAuthToken(code);
+		let googleToken = await youtube.getAuthToken(code);
+		const token = jwt.sign({ googleToken }, jwtSecret, { expiresIn: '1h' });
+		res.cookie("googleToken", token, { httpOnly: true, secure: true });
 		const successScript = `
 			<script>
 				window.opener.postMessage('Success! You can now close the window.', '*');
@@ -185,7 +199,28 @@ app.get("/api/youtube/get-length/:playlistId", async (req, res) => {
 app.get("/api/youtube/playlist-songs/:playlistId", async (req, res) => {
 	try {
 		const playlistId: string = req.params.playlistId;
-		let songsArray = getAllPlaylistSongs(playlistId, youtube)
+		let totalSongs = 0
+		let nextPageToken: string | null = null
+		let songsArray: any = []
+		do {
+			const { items, nextPageToken: newNextPageToken } = await youtube.getPlaylistSongs(playlistId, nextPageToken);
+
+			if (!items) {
+				console.error("Invalid response: items is undefined");
+				return;
+			}
+			for (const item of items) {
+				try {
+					const song = await youtube.extractSongsFromYouTube(item);
+					songsArray.push(song)
+				} catch (error) {
+					console.log(`Error processing song '${item}':`, error);
+				}
+			}
+			totalSongs += items.length;
+			nextPageToken = newNextPageToken as string;
+            console.log(nextPageToken)
+		} while (nextPageToken);
 		res.json(songsArray);
 	} catch (error: any) {
 		res.status(500).json({

@@ -61,34 +61,4 @@ async function createSpotifyPlaylist(
 	}
 }
 
-async function getAllPlaylistSongs(playlistId: string, youtube: Youtube): Promise<any[]> {
-	let totalSongs = 0;
-	let nextPageToken: string | null = null;
-	let songsArray: any[] = [];
-  
-	do {
-	  const { items, nextPageToken: newNextPageToken } = await youtube.getPlaylistSongs(playlistId, nextPageToken);
-  
-	  if (!items) {
-		console.error("Invalid response: items is undefined");
-		return songsArray;
-	  }
-  
-	  for (const item of items) {
-		try {
-		  const song = await youtube.extractSongsFromYouTube(item);
-		  songsArray.push(song);
-		} catch (error) {
-		  console.log(`Error processing song '${item}':`, error);
-		}
-	  }
-  
-	  totalSongs += items.length;
-	  nextPageToken = newNextPageToken as string;
-	  console.log(nextPageToken);
-	} while (nextPageToken);
-  
-	return songsArray;
-  }
-
-export { createSpotifyPlaylist, getAllPlaylistSongs };
+export { createSpotifyPlaylist };

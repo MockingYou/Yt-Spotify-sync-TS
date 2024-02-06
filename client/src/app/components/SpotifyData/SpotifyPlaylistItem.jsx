@@ -68,7 +68,7 @@ const SpotifyPlaylistItem = (props) => {
             {loading && <LoadingRadial />}
           </span>
           <RotationIcon
-            onClickHandle={handleCollapseExpand}
+            handleClick={handleCollapseExpand}
             collapsedSongs={collapsedSongs}
           />
         </div>
