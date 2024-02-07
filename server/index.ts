@@ -12,15 +12,8 @@ dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 8000;
 
-const crypto = require('crypto');
-
-// Generate a random string of 64 characters
-const generateJwtSecret = () => {
-    return crypto.randomBytes(32).toString('hex');
-};
-
 // Generate JWT secret
-const jwtSecret = generateJwtSecret();
+const jwtSecret = generateRandomKey();
 
 
 const spotify_scopes = config.spotify.scopes;
@@ -163,11 +156,15 @@ app.get("/google/callback", async (req, res) => {
 	const code: any = req.query.code;
 	try {
 		let googleToken = await youtube.getAuthToken(code);
-		const token = jwt.sign({ googleToken }, jwtSecret, { expiresIn: '1h' });
-		res.cookie("googleToken", token, { httpOnly: true, secure: true });
+		let accessToken = googleToken.access_token;
+		const token = jwt.sign({ accessToken }, jwtSecret, { expiresIn: '1h' });
 		const successScript = `
 			<script>
-				window.opener.postMessage('Success! You can now close the window.', '*');
+			window.opener.postMessage({
+				success: true,
+				token: '${token}',
+				message: 'Success! You can now close the window.'
+			}, '*');
 			</script>
 		`;
 		res.send(successScript);
@@ -259,3 +256,4 @@ app.post("/api/youtube/add-songs/:playlistId", async (req, res) => {
 app.listen(port, () => {
 	console.log(`Server is Fire at http://localhost:${port}`);
 });
+
