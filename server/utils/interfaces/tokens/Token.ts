@@ -4,7 +4,6 @@ export default interface Token {
     token_source: string;
 }
 
-// Factory function to create Token instances with default values
 export const createToken = ({
     access_token = '',
     refresh_token = undefined,

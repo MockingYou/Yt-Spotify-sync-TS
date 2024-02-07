@@ -1,30 +1,29 @@
 .loader {
-	position: relative; /* Add this line */
+  position: relative; /* Add this line */
+}
+
+.loader::before {
+  animation: 1.5s linear infinite spinner;
+  animation-play-state: inherit;
+  border: solid 5px #cfd0d1;
+  border-bottom-color: #d8a70c;
+  border-radius: 50%;
+  content: "";
+  height: 18px;
+  position: absolute;
+  top: 50%; /* Updated to center vertically */
+  left: 50%; /* Updated to center horizontally */
+  transform: translate3d(-50%, -50%, 0);
+  width: 18px;
+  will-change: transform;
+  margin-left: 15px;
+}
+
+@keyframes spinner {
+  0% {
+    transform: translate3d(-50%, -50%, 0) rotate(0deg);
   }
-  
-  .loader::before {
-	animation: 1.5s linear infinite spinner;
-	animation-play-state: inherit;
-	border: solid 5px #cfd0d1;
-	border-bottom-color: #D8A70C;
-	border-radius: 50%;
-	content: "";
-	height: 18px;
-	position: absolute;
-	top: 50%; /* Updated to center vertically */
-	left: 50%; /* Updated to center horizontally */
-	transform: translate3d(-50%, -50%, 0);
-	width: 18px;
-	will-change: transform;
-	margin-left: 15px;
+  100% {
+    transform: translate3d(-50%, -50%, 0) rotate(360deg);
   }
-  
-  @keyframes spinner {
-	0% {
-	  transform: translate3d(-50%, -50%, 0) rotate(0deg);
-	}
-	100% {
-	  transform: translate3d(-50%, -50%, 0) rotate(360deg);
-	}
-  }
-  
+}

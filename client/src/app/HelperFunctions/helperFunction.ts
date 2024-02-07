@@ -16,7 +16,7 @@ export const handleLogin = async (
       `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
     );
     const messageHandler = () => {
-      if (event.data == "Success! You can now close the window.") {
+      if (event.data === "Success! You can now close the window.") {
         setLoggedIn(true);
         popup?.close();
         window.removeEventListener("message", messageHandler);

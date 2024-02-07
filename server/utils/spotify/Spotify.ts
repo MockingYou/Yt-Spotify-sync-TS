@@ -2,7 +2,7 @@ import SpotifyWebApi from "spotify-web-api-node";
 import Playlist from "../interfaces/songs/Playlist";
 import AuthData from "../interfaces/AuthData";
 import Song from "../interfaces/songs/Song";
-import Token from "../interfaces/tokens/Token";
+import Token, { createToken } from "../interfaces/tokens/Token";
 import dotenv from "dotenv";
 import config from "../config.json";
 dotenv.config();
@@ -12,10 +12,12 @@ type MyAuthData = Omit<AuthData, "youtubeApi" | "youtubeToken">;
 export default class Spotify {
     public isLogged: boolean = false;
     myAuthData: MyAuthData;
+	private defaultToken: Token = createToken({});
     constructor() {
         this.myAuthData = {
             clientId: process.env.CLIENT_ID_SPOTIFY || "",
             clientSecret: process.env.CLIENT_SECRET_SPOTIFY || "",
+			token: this.defaultToken,
             redirectUri: config.spotify.redirect_uris[0],
             spotifyApi: new SpotifyWebApi() as SpotifyWebApi,
         };
@@ -53,12 +55,12 @@ export default class Spotify {
                     console.error("Error refreshing access token:", refreshError);
                 }
             }, expiresIn * 1000);
-    
-            return {
+            this.myAuthData.token = {
                 access_token: spotifyToken,
                 refresh_token: refreshToken,
                 token_source: "spotify_token",
             };
+            return this.myAuthData.token;
         } catch (error) {
             console.error("Error getting Spotify access token:", error);
             throw new Error("Failed to retrieve Spotify access token");

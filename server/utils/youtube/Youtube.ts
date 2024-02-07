@@ -22,9 +22,10 @@ export default class Youtube {
 		this.myAuthData = {
 			clientId: process.env.CLIENT_ID_YOUTUBE || "",
 			clientSecret: process.env.CLIENT_SECRET_YOUTUBE || "",
+			token: this.defaultToken,
 			redirectUri: config.google.redirect_uris[0],
-			youtubeApi: new google.auth.OAuth2(),
 			youtubeApiKey: process.env.YOUTUBE_API_KEY || "",
+			youtubeApi: new google.auth.OAuth2(),
 		};
 		this.myAuthData.youtubeApi = new google.auth.OAuth2(
 			this.myAuthData.clientId,
@@ -58,10 +59,11 @@ export default class Youtube {
 				version: "v3",
 				auth: this.myAuthData.youtubeApi,
 			});
-			return {
+			this.myAuthData.token = {
 				access_token: youtubeToken,
 				token_source: "youtube_token",
 			};
+			return this.myAuthData.token;
 		} catch (error) {
 			console.error("Error retrieving YouTube access token:", error);
 			throw new Error("Failed to retrieve YouTube access token");
@@ -74,9 +76,7 @@ export default class Youtube {
 				part: ["id"],
 				mine: true,
 			});
-
 			const items = channelsResponse.data.items;
-
 			if (items && items.length > 0) {
 				const channelId = items[0].id;
 				console.log("Channel ID:", channelId);
@@ -110,7 +110,6 @@ export default class Youtube {
 				name: playlist.snippet?.title,
 				images: playlist.snippet?.thumbnails?.default?.url,
 			}));
-
 			console.log("YouTube Playlists:", playlists);
 			return playlists;
 		} catch (error: any) {
@@ -124,9 +123,7 @@ export default class Youtube {
 				part: ["snippet"],
 				id: [playlistId],
 			} as youtube_v3.Params$Resource$Playlists$List);
-
 			const playlist: K | undefined = response.data.items?.[0];
-
 			if (playlist) {
 				return playlist.snippet.title;
 			} else {
@@ -244,39 +241,29 @@ export default class Youtube {
 	};
 
 	public searchSong = async (song: Song): Promise<string> => {
+		const query = `${song.artist} ${song.track}`;
 		try {
-			const query = `${song.artist} ${song.track}`;
-			//   console.log("Search Query:", query);
+			const searchResponse = await this.youtube.search.list({
+				part: ["id"],
+				q: query,
+				maxResults: 1,
+				type: ["video"], // Wrap "video" in an array
+			} as youtube_v3.Params$Resource$Search$List);
 
-			try {
-				const searchResponse = await this.youtube.search.list({
-					part: ["id"],
-					q: query,
-					maxResults: 1,
-					type: ["video"], // Wrap "video" in an array
-				} as youtube_v3.Params$Resource$Search$List);
-
-				if (
-					searchResponse.data.items &&
-					searchResponse.data.items.length > 0
-				) {
-					song.id = searchResponse.data.items[0].id
-						?.videoId as string;
-					if (song.id) {
-						return song.id;
-					}
+			if (
+				searchResponse.data.items &&
+				searchResponse.data.items.length > 0
+			) {
+				song.id = searchResponse.data.items[0].id?.videoId as string;
+				if (song.id) {
+					return song.id;
 				}
-			} catch (error) {
-				console.log(`Error searching for song: ${query}`, error);
-				// You can handle the error here, e.g., return null or throw an error
 			}
-
-			console.log("No video found for the provided artist-song pair.");
-			return song.id as string;
 		} catch (error) {
-			console.log("Search Error:", error);
-			throw error;
+			console.log(`Error searching for song: ${query}`, error);
 		}
+		console.log("No video found for the provided artist-song pair.");
+		return song.id as string;
 	};
 
 	public addSongToPlaylist = async (
@@ -285,8 +272,6 @@ export default class Youtube {
 	): Promise<void> => {
 		try {
 			const videoId = await this.searchSong(song);
-			//   console.log("Video ID:", videoId);
-
 			if (!videoId) {
 				console.log(
 					"No video found for the provided artist-song pair.",

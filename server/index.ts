@@ -5,15 +5,14 @@ import config from "./utils/config.json";
 import Spotify from "./utils/spotify/Spotify";
 import Youtube from "./utils/youtube/Youtube";
 import { createSpotifyPlaylist } from "./utils/methods/playlistHandling";
-import { generateRandomKey } from "./utils/methods/generateRandomKey";
-import jwt from "jsonwebtoken";
+import { loginHandler } from "./utils/methods/loginHandler";
+
 import AuthData from "./utils/interfaces/AuthData";
+
 dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 8000;
 
-// Generate JWT secret
-const jwtSecret = generateRandomKey();
 
 
 const spotify_scopes = config.spotify.scopes;
@@ -35,7 +34,6 @@ app.use((req, res, next) => {
 	res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 	res.header("Access-Control-Allow-Credentials", "true");
 
-	// Allow preflight requests
 	if (req.method === "OPTIONS") {
 		res.sendStatus(200);
 	} else {
@@ -43,7 +41,7 @@ app.use((req, res, next) => {
 	}
 });
 
-app.get("/events",cors(corsOptions), (req, res) => {
+app.get("/events",cors(corsOptions), (req: Request, res: Response) => {
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -57,21 +55,17 @@ app.get("/events",cors(corsOptions), (req, res) => {
 })
 
 //  ================== Spotify APIs ======================
-app.get("/spotify/login", (req, res) => {
+app.get("/spotify/login", (req: Request, res: Response) => {
 	res.redirect(
 		spotify.myAuthData.spotifyApi.createAuthorizeURL(spotify_scopes, ""),
 	);
 });
 
-app.get("/spotify/callback", async (req, res) => {
+app.get("/spotify/callback", async (req: Request, res: Response) => {
 	const code: any = req.query.code;
 	try {
-	  await spotify.getAuthToken(code);
-	  const successScript = `
-		<script>
-		  window.opener.postMessage('Success! You can now close the window.', '*');
-		</script>`;
-	  res.send(successScript);
+		let successScript = await loginHandler(code, spotify);
+	  	res.send(successScript);
 	} catch (error) {
 	  console.error("Error getting tokens:", error);
 	  res.status(500).json({ error: `Error getting tokens: ${error}` });
@@ -79,7 +73,7 @@ app.get("/spotify/callback", async (req, res) => {
   });
 
 
-  app.get("/api/spotify/playlists", async (req, res) => {
+  app.get("/api/spotify/playlists", async (req: Request, res: Response) => {
 	try {
 	  const userData = await spotify.myAuthData.spotifyApi.getMe();
 	  const userId = userData.body.id;
@@ -103,7 +97,7 @@ app.get("/spotify/callback", async (req, res) => {
   });
   
 
-app.get("/api/spotify/playlistTitle/:playlistId", async (req, res) => {
+app.get("/api/spotify/playlistTitle/:playlistId", async (req: Request, res: Response) => {
 	try {
 		const playlistId: string = req.params.playlistId;
 		const title: string = await spotify.getPlaylistTitle(playlistId);
@@ -116,7 +110,7 @@ app.get("/api/spotify/playlistTitle/:playlistId", async (req, res) => {
 	}
 });
 
-app.get("/api/spotify/playlist-songs/:playlistId", async (req, res) => {
+app.get("/api/spotify/playlist-songs/:playlistId", async (req: Request, res: Response) => {
 	try {
 		const playlistId: string = req.params.playlistId;
 		const songs = await spotify.getPlaylistSongs(playlistId);
@@ -128,7 +122,7 @@ app.get("/api/spotify/playlist-songs/:playlistId", async (req, res) => {
 	}
 });
 
-app.get("/api/spotify/add-songs/:playlistId", cors(corsOptions), async (req, res) => {
+app.get("/api/spotify/add-songs/:playlistId", cors(corsOptions), async (req: Request, res: Response) => {
     try {
         const ytPlaylistId = req.params.playlistId;
         res.writeHead(200, {
@@ -147,26 +141,16 @@ app.get("/api/spotify/add-songs/:playlistId", cors(corsOptions), async (req, res
 
 //  ================== Google APIs ======================
 
-app.get("/google/login", (req, res) => {
+app.get("/google/login", (req: Request, res: Response) => {
 	const authUrl: string = youtube.generateAuthUrl();
 	res.redirect(authUrl);
 });
 
-app.get("/google/callback", async (req, res) => {
+app.get("/google/callback", async (req: Request, res: Response) => {
 	const code: any = req.query.code;
 	try {
-		let googleToken = await youtube.getAuthToken(code);
-		let accessToken = googleToken.access_token;
-		const token = jwt.sign({ accessToken }, jwtSecret, { expiresIn: '1h' });
-		const successScript = `
-			<script>
-			window.opener.postMessage({
-				success: true,
-				token: '${token}',
-				message: 'Success! You can now close the window.'
-			}, '*');
-			</script>
-		`;
+		let successScript = await loginHandler(code, youtube);
+
 		res.send(successScript);
 	} catch (error) {
 		console.error("Error exchanging code for token:", error);
@@ -174,26 +158,26 @@ app.get("/google/callback", async (req, res) => {
 	}
 });
 
-app.get("/google/protected", (req, res) => {
-	//   if (!youtube.myAuthData.youtubeToken) {
-	//       res.redirect("/auth");
-	//   } else {
-	//       res.send("Welcome to the protected route!");
-	//   }
+app.get("/google/protected", (req: Request, res: Response) => {
+	  if (!youtube.myAuthData.token) {
+	      res.redirect("/auth");
+	  } else {
+	      res.send("Welcome to the protected route!");
+	  }
 });
 
-app.get("/api/youtube/playlists", async (req, res) => {
+app.get("/api/youtube/playlists", async (req: Request, res: Response) => {
 	const playlists = await youtube.getYouTubePlaylists();
 	res.json(playlists)
 })
 
-app.get("/api/youtube/get-length/:playlistId", async (req, res) => {
+app.get("/api/youtube/get-length/:playlistId", async (req: Request, res: Response) => {
     const playlistId = req.params.playlistId
     const response = await youtube.getPlaylistLength(playlistId)
     res.json(response)
 })
 
-app.get("/api/youtube/playlist-songs/:playlistId", async (req, res) => {
+app.get("/api/youtube/playlist-songs/:playlistId", async (req: Request, res: Response) => {
 	try {
 		const playlistId: string = req.params.playlistId;
 		let totalSongs = 0
@@ -226,7 +210,7 @@ app.get("/api/youtube/playlist-songs/:playlistId", async (req, res) => {
 	}
 });
 
-app.post("/api/youtube/add-songs/:playlistId", async (req, res) => {
+app.post("/api/youtube/add-songs/:playlistId", async (req: Request, res: Response) => {
 	try {
 		const spotifyPlaylistId: string = req.params.playlistId;
 		const songs = await spotify.getPlaylistSongs(spotifyPlaylistId);
