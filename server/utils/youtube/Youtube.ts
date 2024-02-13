@@ -165,7 +165,7 @@ export default class Youtube {
 	public async extractSongsFromYouTube(
 		item: youtube_v3.Schema$PlaylistItem,
 	): Promise<Song> {
-		let song: Song = { track: "", artist: "" };
+		let song: Song = { track: "", artist: "", image: "" };
 		const snippet = item.snippet;
 		const videoId = snippet?.resourceId?.videoId;
 		try {
@@ -182,7 +182,8 @@ export default class Youtube {
 				typeof filter == "string"
 					? `${snippet?.title}`
 					: normalizeString(filter.artist);
-			song = { track, artist };
+			const image = snippet?.thumbnails?.default?.url
+			song = { track, artist, image };
 		} catch (error) {
 			console.error("Error extracting songs from YouTube:", error);
 		}

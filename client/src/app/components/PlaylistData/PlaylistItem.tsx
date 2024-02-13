@@ -1,23 +1,23 @@
-import React, { useState, useEffect, Fragment } from "react";
+import { useState, Fragment } from "react";
 import LoadingRadial from "../Loading/LoadingRadial";
 import RotationIcon from "../Icons/RotationIcon";
 import { PlusIcon, MinusCircleIcon } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 
 import axios from "axios";
-import SpotifyPlaylistSong from "./SpotifyPlaylistSong";
+import PlaylistSong from "./PlaylistSong";
 
-const SpotifyPlaylistItem = (props) => {
+const PlaylistItem = ({name, id, removePlaylist, image, selectPlaylist, source}) => {
   const [playlistSongsSpotify, setPlaylistSongsSpotify] = useState([]);
   const [loading, setLoading] = useState(false);
   const [collapsedSongs, setCollapsedSongs] = useState(true);
   const [selected, setSelected] = useState(false);
 
-  const getPlaylistSongs = async (playlistId) => {
+  const getPlaylistSongs = async (playlistId: string) => {
     try {
       setLoading(true);
       const playlistSongs = await axios.get(
-        `http://localhost:8000/api/youtube/playlist-songs/${playlistId}`,
+        `http://localhost:8000/api/${source.name}/playlist-songs/${playlistId}`,
       );
       setPlaylistSongsSpotify(playlistSongs.data);
     } catch (error) {
@@ -30,7 +30,7 @@ const SpotifyPlaylistItem = (props) => {
 
   const handleCollapseExpand = () => {
     if (collapsedSongs && playlistSongsSpotify.length === 0) {
-      getPlaylistSongs(props.id);
+      getPlaylistSongs(id);
     } else {
       setCollapsedSongs(!collapsedSongs);
     }
@@ -46,7 +46,7 @@ const SpotifyPlaylistItem = (props) => {
                 className="mr-4 h-6 w-6 cursor-pointer text-purple-500"
                 onClick={() => {
                   setSelected(false);
-                  props.removePlaylist();
+                  removePlaylist();
                 }}
               />
             ) : (
@@ -54,17 +54,17 @@ const SpotifyPlaylistItem = (props) => {
                 className="mr-4 h-6 w-6 cursor-pointer text-purple-500"
                 onClick={() => {
                   setSelected(true);
-                  props.selectPlaylist();
+                  selectPlaylist();
                 }}
               />
             )}
 
             <img
               className="mr-4 h-14 w-16 rounded"
-              src={props.image}
+              src={source.name === "spotify" ? image[0].url : image}
               alt="image description"
             />
-            {props.name}
+            {name}
             {loading && <LoadingRadial />}
           </span>
           <RotationIcon
@@ -75,9 +75,10 @@ const SpotifyPlaylistItem = (props) => {
         <div className="m-2 flex max-w-fit flex-col pl-4">
           {!collapsedSongs &&
             playlistSongsSpotify.map((item, index) => (
-              <SpotifyPlaylistSong
+              <PlaylistSong
                 artist={item.artist}
                 track={item.track}
+                image={item.image}
                 key={index}
               />
             ))}
@@ -87,4 +88,4 @@ const SpotifyPlaylistItem = (props) => {
   );
 };
 
-export default SpotifyPlaylistItem;
+export default PlaylistItem;

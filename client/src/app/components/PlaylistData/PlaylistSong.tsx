@@ -1,13 +1,19 @@
-import React, { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { ArrowRightCircleIcon, MinusCircleIcon } from "@heroicons/react/24/solid";
 
-const SpotifyPlaylistSong = (props) => {
+const PlaylistSong = (props) => {
+  console.log(props)
   return (
     <Fragment>
       <div className="flex w-full items-center justify-between">
         {props && (
           <div className="flex items-center justify-center ml-12">
             <ArrowRightCircleIcon className="m-4 mr-6 h-6 w-6 min-h-6 min-w-6 flex-shrink-0" />
+            <img
+              className="mr-4 h-10 w-12 rounded"
+              src={props.image}
+              alt="image description"
+            />
             <p className="m-4">
               {props.artist} - {props.track}
             </p>
@@ -19,4 +25,4 @@ const SpotifyPlaylistSong = (props) => {
   );
 };
 
-export default SpotifyPlaylistSong;
+export default PlaylistSong;

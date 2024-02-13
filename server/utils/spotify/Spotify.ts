@@ -127,14 +127,16 @@ export default class Spotify {
             return {
                 id: trackId, 
                 artist: song.artist,
-                track: song.track
+                track: song.track,
+                image: song.image
             }
         } catch (error) {
             console.error("Error searching for song:", error);
             return {
                 id: "", 
                 artist: song.artist,
-                track: song.track
+                track: song.track,
+                image: song.image
             }
         }
     };
@@ -171,15 +173,15 @@ export default class Spotify {
                         {
                             offset,
                             limit: maxResults,
-                            fields: "items(track(name,artists(name)))",
+                            fields: "items(track(name,artists(name), album(images)))",
                         }
                     );
 
                 const playlistItems = playlistTracksData.body.items;
-
                 const songs: Array<Song> = playlistItems.map((item) => ({
                     artist: item.track?.artists[0].name || "Unknown Artist",
                     track: item.track?.name || "Unknown Track",
+                    image: item.track?.album?.images[0].url || ""
                 }));
 
                 allSongs.push(...songs);

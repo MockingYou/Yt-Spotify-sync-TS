@@ -48,9 +48,7 @@ async function createSpotifyPlaylist(
 		} while (nextPageToken);
 
 		const date2 = Date.now();
-		console.log("=============================================");
-		console.log("Date: ", date2 - date1);
-		console.log("=============================================");
+
 	} catch (error) {
 		console.error(`Error converting playlist: ${error}`);
 		res.write(

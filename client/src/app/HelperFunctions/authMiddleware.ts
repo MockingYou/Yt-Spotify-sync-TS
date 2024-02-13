@@ -1,5 +1,3 @@
-// authMiddleware.js
-
 import Cookies from "js-cookie";
 
 const popupWidth = 600;
