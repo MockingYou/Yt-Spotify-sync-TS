@@ -110,7 +110,7 @@ const Playlists = ({ source, destination }) => {
 
         <p className="font-mono text-white"> or use a link </p>
 
-        <div className="m-5 mt-2 h-48 w-[46rem] rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
+        <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
           <div className="item-center flex-1 flex-col justify-center ">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -119,9 +119,6 @@ const Playlists = ({ source, destination }) => {
               value={playlistLink}
               onChange={(e) => setPlaylistLink(e.target.value)}
             ></input>
-            <div className="float-right">
-              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist)} name="Load playlist from link" />
-            </div>
             <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
               {sourceLinkPlaylist &&
                 sourceLinkPlaylist.map((item, index) => (
@@ -132,6 +129,9 @@ const Playlists = ({ source, destination }) => {
                     key={index}
                   />
                 ))}
+            </div>
+            <div className="float-right">
+              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist)} name="Choose destination" />
             </div>
           </div>
           {loadingProgress < 100 && (

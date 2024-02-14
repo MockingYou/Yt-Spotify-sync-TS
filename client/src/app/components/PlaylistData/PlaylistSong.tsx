@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { ArrowRightCircleIcon, MinusCircleIcon } from "@heroicons/react/24/solid";
 
 const PlaylistSong = (props) => {
-  console.log(props)
   return (
     <Fragment>
       <div className="flex w-full items-center justify-between">
