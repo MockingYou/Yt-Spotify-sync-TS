@@ -96,15 +96,20 @@ export default class Spotify {
         }
     };
 
-    public getPlaylistTitle = async (playlistId: string): Promise<string> => {
+    public getPlaylistData = async (playlistId: string): Promise<Playlist> => {
         try {
             const playlist = await this.myAuthData.spotifyApi.getPlaylist(
                 playlistId
             );
-            const playlistTitle = playlist.body.name;
-            return playlistTitle;
-        } catch (error) {
-            console.error("Error getting playlist title:", error);
+            const playlistData = {
+                title: playlist.body.name,
+                image: playlist.body.images[0].url,
+                id: playlistId,
+                songNames: []   
+            } 
+            return playlistData;
+        } catch (error: any) {
+            console.error("Error getting playlist title:", error.message);
             throw new Error("Failed to fetch playlist title");
         }
     };

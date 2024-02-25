@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { faSpotify, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import SelectorButton from "../components/SelectorButton";
 import Cookies from "js-cookie";
@@ -14,8 +14,14 @@ const calculatePopupPosition = () => {
   return { left, top };
 };
 
-const Selector = ({ source, destination, setSource, setDestination }) => {
+const SourceSelector = ({ source, destination, setSource, setDestination }) => {
   const navigate = useNavigate();
+
+  // Effect to save source and destination to localStorage
+  useEffect(() => {
+    localStorage.setItem("source", JSON.stringify(source));
+    localStorage.setItem("destination", JSON.stringify(destination));
+  }, [source, destination]);
 
   const handleButtonClick = (
     index: number,
@@ -49,9 +55,9 @@ const Selector = ({ source, destination, setSource, setDestination }) => {
     }
   
     if (source.index === null) {
-      setSource({index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName});
+      setSource({ index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName });
     } else if (destination === null && index !== source.index) {
-      setDestination({index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName});
+      setDestination({ index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName });
     } else {
       setSource({});
       setDestination({});
@@ -112,4 +118,4 @@ const Selector = ({ source, destination, setSource, setDestination }) => {
   );
 };
 
-export default Selector;
+export default SourceSelector;

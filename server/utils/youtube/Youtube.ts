@@ -117,7 +117,7 @@ export default class Youtube {
 			throw error;
 		}
 	};
-	public getPlaylistTitle = async (playlistId: string): Promise<string> => {
+	public getPlaylistData = async (playlistId: string): Promise<string> => {
 		try {
 			const response = await this.youtube.playlists.list({
 				part: ["snippet"],
@@ -125,6 +125,7 @@ export default class Youtube {
 			} as youtube_v3.Params$Resource$Playlists$List);
 			const playlist: K | undefined = response.data.items?.[0];
 			if (playlist) {
+				console.log(playlist.snippet)
 				return playlist.snippet.title;
 			} else {
 				console.log("Playlist not found or has no items.");

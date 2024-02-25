@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { Fragment, useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
@@ -14,13 +14,15 @@ const Playlists = ({ source, destination }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [playlistLink, setPlaylistLink] = useState("");
   const [playlistName, setPlaylistName] = useState("");
-
+  const [linkItem, setLinkItem] = useState(null);
   let selectedPlaylists = [];
-
 
   useEffect(() => {
     setFilteredPlaylist(sourcePlaylist);
   }, [sourcePlaylist]);
+
+  const memoizedPlaylistSongs = useMemo(() => playlistSongs, [playlistSongs]);
+  const memoizedFilteredPlaylist = useMemo(() => filteredPlaylist, [filteredPlaylist]);
 
   const convertPlaylist = async () => {
     setPlaylistSongs([]);
@@ -67,10 +69,10 @@ const Playlists = ({ source, destination }) => {
     console.log(selectedPlaylists);
   };
 
-  const handleSearchChange = (event: any) => {
+  const handleSearchChange = (event) => {
     const newSearchTerm = event.target.value;
     setPlaylistName(newSearchTerm);
-    const filteredData = sourcePlaylist.filter((item: { name: string; }) =>
+    const filteredData = sourcePlaylist.filter((item) =>
       item.name.toLowerCase().includes(newSearchTerm.toLowerCase())
     );
     setFilteredPlaylist(filteredData);
@@ -90,8 +92,8 @@ const Playlists = ({ source, destination }) => {
               onChange={handleSearchChange}
               onInput={handleSearchChange}
             ></input>
-            {filteredPlaylist &&
-              filteredPlaylist.map((item, index) => (
+            {memoizedFilteredPlaylist &&
+              memoizedFilteredPlaylist.map((item, index) => (
                 <PlaylistItem
                   selectPlaylist={() => selectPlaylist(item.id)}
                   removePlaylist={() => removePlaylist(item.id)}
@@ -120,6 +122,7 @@ const Playlists = ({ source, destination }) => {
               onChange={(e) => setPlaylistLink(e.target.value)}
             ></input>
             <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
+              {linkItem && <PlaylistItem selectPlaylist={() => {}} removePlaylist={() => {}} id={linkItem.id} name={linkItem.title} image={linkItem.image} source={""}  />}
               {sourceLinkPlaylist &&
                 sourceLinkPlaylist.map((item, index) => (
                   <PlaylistSong
@@ -131,7 +134,7 @@ const Playlists = ({ source, destination }) => {
                 ))}
             </div>
             <div className="float-right">
-              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist)} name="Choose destination" />
+              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist, setLinkItem)} name="Choose destination" />
             </div>
           </div>
           {loadingProgress < 100 && (
@@ -139,7 +142,7 @@ const Playlists = ({ source, destination }) => {
               <LoadingBar progress={loadingProgress} />
               <div className="z-100 flex max-h-40 flex-1 justify-center overflow-y-auto">
                 <ul className="list-disc">
-                  {playlistSongs.map((item, index) => (
+                  {memoizedPlaylistSongs.map((item, index) => (
                     <li className="m-4" key={index}>
                       {item}
                     </li>

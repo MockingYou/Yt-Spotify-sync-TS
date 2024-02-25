@@ -21,7 +21,7 @@ const spotify = new Spotify();
 const youtube = new Youtube();
 
 const corsOptions = {
-    origin: 'http://localhost:5173', // Update with your React app's origin
+    origin: 'http://localhost:5173',
 };
 
 app.use(cors(corsOptions));
@@ -97,11 +97,12 @@ app.get("/spotify/callback", async (req: Request, res: Response) => {
   });
   
 
-app.get("/api/spotify/playlistTitle/:playlistId", async (req: Request, res: Response) => {
+app.get("/api/spotify/playlist-title/:playlistId", async (req: Request, res: Response) => {
 	try {
 		const playlistId: string = req.params.playlistId;
-		const title: string = await spotify.getPlaylistTitle(playlistId);
-		res.json(title);
+		const playlistData = await spotify.getPlaylistData(playlistId);
+		// const title = playlistData.title;
+		res.json(playlistData);
 	} catch (error) {
 		// console.error();
 		res.status(500).json({
@@ -200,7 +201,6 @@ app.get("/api/youtube/playlist-songs/:playlistId", async (req: Request, res: Res
 			}
 			totalSongs += items.length;
 			nextPageToken = newNextPageToken as string;
-            console.log(nextPageToken)
 		} while (nextPageToken);
 		res.json(songsArray);
 	} catch (error: any) {
@@ -214,13 +214,9 @@ app.post("/api/youtube/add-songs/:playlistId", async (req: Request, res: Respons
 	try {
 		const spotifyPlaylistId: string = req.params.playlistId;
 		const songs = await spotify.getPlaylistSongs(spotifyPlaylistId);
-		console.log(songs)
-		const playlistTitle = await spotify.getPlaylistTitle(spotifyPlaylistId);
-		console.log(playlistTitle)
-		const youtubePlaylistId = await youtube.createPlaylist(playlistTitle);
-		console.log(youtubePlaylistId)
+		const playlistData = await spotify.getPlaylistData(spotifyPlaylistId);
+		const youtubePlaylistId = await youtube.createPlaylist("");
 		for(const song of songs) {
-			console.log(song)
 			try {
 				await youtube.addSongToPlaylist(youtubePlaylistId, song)
 			} catch (error) {

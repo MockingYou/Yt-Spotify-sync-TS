@@ -15,12 +15,30 @@ export const getPlaylists = async (source: string, setPlaylist: Function) => {
   }
 };
 
-export const getSongs = async (source: string, sourceLink: string, setPlaylist: Function) => {
+export const getSongs = async (source: string, sourceLink: string, setPlaylist: Function, setLinkItem: Function) => {
+  let playlistId = ""
   try {
-    const playlistId = sourceLink.split("playlist/")[1];
+    if(source === 'spotify' && sourceLink.includes("open.spotify.com/playlist")) {
+      playlistId = sourceLink.split("playlist/")[1]
+    } else if(source === 'youtube' && sourceLink.includes("youtube.com/playlist")) {
+      playlistId = sourceLink.split("list=")[1]
+    } else {
+      console.log("Input Link invalid");
+    }
     const playlistData = await axios.get(`http://localhost:8000/api/${source}/playlist-songs/${playlistId}`);  
+    const linkItem = await getPlaylistData(source, playlistId);
+    setLinkItem(linkItem);
     setPlaylist(playlistData.data);
   } catch (error) {
-    console.error("Error fetching playlists:", error);
+    console.error("Error fetching songs:", error);
+  }
+}
+
+export const getPlaylistData = async (source: string, playlistId: string) => {
+  try {
+    const linkData = await axios.get(`http://localhost:8000/api/${source}/playlist-title/${playlistId}`);  
+    return linkData.data;
+  } catch (error) {
+      console.log("Error fetching playlists:")
   }
 }

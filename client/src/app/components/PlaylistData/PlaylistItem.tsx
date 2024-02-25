@@ -3,7 +3,6 @@ import LoadingRadial from "../Loading/LoadingRadial";
 import RotationIcon from "../Icons/RotationIcon";
 import { PlusIcon, MinusCircleIcon } from "@heroicons/react/24/outline";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
-
 import axios from "axios";
 import PlaylistSong from "./PlaylistSong";
 
@@ -15,6 +14,7 @@ const PlaylistItem = ({name, id, removePlaylist, image, selectPlaylist, source})
 
   const getPlaylistSongs = async (playlistId: string) => {
     try {
+      console.log(source)
       setLoading(true);
       const playlistSongs = await axios.get(
         `http://localhost:8000/api/${source.name}/playlist-songs/${playlistId}`,
@@ -41,7 +41,7 @@ const PlaylistItem = ({name, id, removePlaylist, image, selectPlaylist, source})
       <div className="m-2 w-full items-center justify-between">
         <div className="m-2 flex w-full shrink-0 items-center justify-between">
           <span className="flex items-center">
-            {selected ? (
+            {source != "" ?  (selected ? (
               <MinusCircleIcon
                 className="mr-4 h-6 w-6 cursor-pointer text-purple-500"
                 onClick={() => {
@@ -56,8 +56,7 @@ const PlaylistItem = ({name, id, removePlaylist, image, selectPlaylist, source})
                   setSelected(true);
                   selectPlaylist();
                 }}
-              />
-            )}
+              />)) : "" }
 
             <img
               className="mr-4 h-14 w-16 rounded"
@@ -67,10 +66,10 @@ const PlaylistItem = ({name, id, removePlaylist, image, selectPlaylist, source})
             {name}
             {loading && <LoadingRadial />}
           </span>
-          <RotationIcon
+          {source != "" ? <RotationIcon
             handleClick={handleCollapseExpand}
             collapsedSongs={collapsedSongs}
-          />
+          /> : ""}
         </div>
         <div className="m-2 flex max-w-fit flex-col pl-4">
           {!collapsedSongs &&

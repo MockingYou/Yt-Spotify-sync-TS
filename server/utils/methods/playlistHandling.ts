@@ -12,8 +12,7 @@ async function createSpotifyPlaylist(
 	totalSongs: number = 0,
 ) {
 	try {
-		const date1 = Date.now();
-		const playlistTitle = await youtube.getPlaylistTitle(playlistId);
+		const playlistTitle = await youtube.getPlaylistData(playlistId);
 		const spotifyPlaylist = await spotify.createPlaylist(playlistTitle);
 		do {
 			const { items, nextPageToken: newNextPageToken } = await youtube.getPlaylistSongs(playlistId, nextPageToken);
@@ -44,7 +43,6 @@ async function createSpotifyPlaylist(
 			}
 			totalSongs += items.length;
 			nextPageToken = newNextPageToken as string;
-            console.log(nextPageToken)
 		} while (nextPageToken);
 
 		const date2 = Date.now();

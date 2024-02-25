@@ -5,7 +5,7 @@
 // type Youtube = Pick<AuthData, "spotifyApi">;
 
 // export default interface PlaylistAPI {
-//     getPlaylistTitle(playlistId: string): Promise<string>;
+//     getPlaylistData(playlistId: string): Promise<string>;
 //     createPlaylist(playlistTitle: string, options: Spotify | Youtube): Promise<string>;
 //     searchSong(song: Song, apiKey: string): Promise<string>;
 //     addTracksToPlaylist(playlistId: string, tracks: string[]): Promise<void>;
