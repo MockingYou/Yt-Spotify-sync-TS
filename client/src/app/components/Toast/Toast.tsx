@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import './Toast.css'; // Import the CSS file
+import './Toast.css';
 
 export default function Toast({ title, message, icon, color }) {
+  console.log("TOAST")
   const [show, setShow] = useState(false);
 
   useEffect(() => {

@@ -1,8 +1,12 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Toast from "../components/Toast/Toast"
+import showToast from "../components/Toast/showToast" 
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Home() {
+	useEffect(() => {
+		showToast({ title: "Error", message: "Failed to fetch playlists", icon: <CheckCircleIcon />, color: "red" })
+	}, [])
 	return (
 		<Fragment>
 			<main className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">

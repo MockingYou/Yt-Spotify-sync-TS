@@ -4,7 +4,7 @@ import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
 import PlaylistItem from "./PlaylistItem";
 import PlaylistSong from "./PlaylistSong"
-import { clampToRange, getPlaylists, getSongs } from "../../HelperFunctions/helperFunction"; // Importing helper functions
+import { clampToRange, getPlaylists, getSongs } from "../../HelperFunctions/helperFunction";
 
 const Playlists = ({ source, destination }) => {
   const [sourcePlaylist, setSourcePlaylist] = useState(null);
