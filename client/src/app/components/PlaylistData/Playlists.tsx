@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
+import LinkButton from "../LinkButton";
 import PlaylistItem from "./PlaylistItem";
 import PlaylistSong from "./PlaylistSong"
 import { clampToRange, getPlaylists, getSongs } from "../../HelperFunctions/helperFunction";
@@ -106,7 +107,9 @@ const Playlists = ({ source, destination }) => {
               ))}
           </div>
           <div className="float-right">
-            <Button method={convertPlaylist} name="Choose destination" />
+            {/* <Button method={convertPlaylist} name="Choose destination" /> */}
+            <LinkButton link={"/sourceselector"} name="Choose destination" />
+
           </div>
         </div>
 
@@ -134,7 +137,9 @@ const Playlists = ({ source, destination }) => {
                 ))}
             </div>
             <div className="float-right">
-              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist, setLinkItem)} name="Choose destination" />
+              <LinkButton link={"/sourceselector"} name="Choose destination" />
+
+              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist, setLinkItem)} name="Load from playlist" />
             </div>
           </div>
           {loadingProgress < 100 && (

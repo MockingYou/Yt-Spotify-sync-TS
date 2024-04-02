@@ -1,11 +1,20 @@
 import axios from "axios";
-import showToast from '../components/Toast/showToast';
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { showAlert } from '../components/Toast/Toast';
 
 export const clampToRange = (value: number, min: number, max: number) => {
   const clampValue = Math.max(min, Math.min(value, max));
   const mappedValue = ((clampValue - min) / max - min) * 100;
   return mappedValue;
+};
+
+const popupWidth = 600;
+const popupHeight = 900;
+
+// Function to calculate popup position
+export const calculatePopupPosition = () => {
+  const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+  const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+  return { left, top };
 };
 
 export const getPlaylists = async (source: string, setPlaylist: Function) => {
@@ -14,7 +23,7 @@ export const getPlaylists = async (source: string, setPlaylist: Function) => {
     setPlaylist(playlistData.data);
   } catch (error) {
     console.error("Error fetching playlists:", error);
-    showToast({ title: "Error", message: "Failed to fetch playlists", icon: CheckCircleIcon, color: "red" });
+    showAlert('error', "Error", 'Failed to fetch playlists');
   }
 };
 
@@ -34,7 +43,7 @@ export const getSongs = async (source: string, sourceLink: string, setPlaylist: 
     setPlaylist(playlistData.data);
   } catch (error) {
     console.error("Error fetching songs:", error);
-    showToast({ title: "Error", message: "Failed to fetch songs", icon: CheckCircleIcon, color: "red" });
+    showAlert('error', "Error", 'Failed to fetch songs');
   }
 };
 
@@ -43,7 +52,7 @@ export const getPlaylistData = async (source: string, playlistId: string) => {
     const linkData = await axios.get(`http://localhost:8000/api/${source}/playlist-title/${playlistId}`);  
     return linkData.data;
   } catch (error) {
-      console.log("Error fetching playlists:");
-      showToast({ title: "Error", message: "Failed to fetch playlist data", icon: CheckCircleIcon, color: "red" });
+    console.log("Error fetching playlists:");
+    showAlert('error', "Error", 'Failed to fetch playlist data');
   }
 };
