@@ -1,5 +1,6 @@
 import axios from "axios";
 import { showAlert } from '../components/Toast/Toast';
+import PlaylistData from "../services/PlaylistDataServices/PlaylistData";
 
 export const clampToRange = (value: number, min: number, max: number) => {
   const clampValue = Math.max(min, Math.min(value, max));
@@ -7,11 +8,9 @@ export const clampToRange = (value: number, min: number, max: number) => {
   return mappedValue;
 };
 
-const popupWidth = 600;
-const popupHeight = 900;
 
 // Function to calculate popup position
-export const calculatePopupPosition = () => {
+export const calculatePopupPosition = (popupWidth: number, popupHeight: number) => {
   const left = window.screenX + (window.outerWidth - popupWidth) / 2;
   const top = window.screenY + (window.outerHeight - popupHeight) / 2;
   return { left, top };
@@ -27,7 +26,7 @@ export const getPlaylists = async (source: string, setPlaylist: Function) => {
   }
 };
 
-export const getSongs = async (source: string, sourceLink: string, setPlaylist: Function, setLinkItem: Function) => {
+export const getSongs = async (source: string, sourceLink: string) => {
   let playlistId = "";
   try {
     if (source === 'spotify' && sourceLink.includes("open.spotify.com/playlist")) {
@@ -39,8 +38,9 @@ export const getSongs = async (source: string, sourceLink: string, setPlaylist: 
     }
     const playlistData = await axios.get(`http://localhost:8000/api/${source}/playlist-songs/${playlistId}`);  
     const linkItem = await getPlaylistData(source, playlistId);
-    setLinkItem(linkItem);
-    setPlaylist(playlistData.data);
+    let playlistInfo = new PlaylistData( playlistData.data, linkItem)
+
+    return playlistInfo
   } catch (error) {
     console.error("Error fetching songs:", error);
     showAlert('error', "Error", 'Failed to fetch songs');

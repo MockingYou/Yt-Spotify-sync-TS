@@ -186,7 +186,7 @@ export default class Spotify {
                 const songs: Array<Song> = playlistItems.map((item) => ({
                     artist: item.track?.artists[0].name || "Unknown Artist",
                     track: item.track?.name || "Unknown Track",
-                    image: item.track?.album?.images[0].url || ""
+                    image: item.track?.album?.images[0]?.url || ""
                 }));
 
                 allSongs.push(...songs);

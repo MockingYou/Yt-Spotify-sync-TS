@@ -18,7 +18,7 @@ export default function App() {
 	  link: "",
     name: ""
   });
-
+  const [playlistLink, setPlaylistLink] = useState("");
   return (
     <Fragment>
       <BrowserRouter>
@@ -57,11 +57,20 @@ export default function App() {
               <PlaylistSelector
                 source={source}
                 destination={destination}
+                playlistLink={playlistLink}
+                setPlaylistLink={ setPlaylistLink }
               />
             }
             path="/playlistselector"
           />
-          <Route element={<Summary /> } path="/summary"
+          <Route 
+            element={
+              <Summary 
+                source={source}
+                playlistLink={playlistLink}
+              /> 
+            } 
+            path="/summary"
           />
         </Routes>
       </BrowserRouter>

@@ -1,17 +1,23 @@
-import { Fragment, Key, useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { faSpotify, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import SelectorButton from "../components/SelectorButton";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import IConvertInfo from "../services/ConvertInfoServices/IConvertInfo";
-import { calculatePopupPosition } from "../HelperFunctions/helperFunction";
 
 const popupWidth = 600;
 const popupHeight = 900;
 
+// Function to calculate popup position
+const calculatePopupPosition = () => {
+  const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+  const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+  return { left, top };
+};
+
 const SourceSelector = ({ source, destination, setSource, setDestination }) => {
   const navigate = useNavigate();
 
+  // Effect to save source and destination to localStorage
   useEffect(() => {
     localStorage.setItem("source", JSON.stringify(source));
     localStorage.setItem("destination", JSON.stringify(destination));
@@ -25,7 +31,7 @@ const SourceSelector = ({ source, destination, setSource, setDestination }) => {
   ) => {
     try {
       if (!Cookies.get(token)) {
-        const { left, top } = calculatePopupPosition();
+        const { left, top } = calculatePopupPosition(); // Calculate popup position
         const popup = window.open(
           providerUrl,
           "_blank",
@@ -39,7 +45,7 @@ const SourceSelector = ({ source, destination, setSource, setDestination }) => {
             Cookies.set(`${providerName}Token`, data.token, {
               expires: 1 / 24,
             });
-            source.index !== null ? navigate("/summary") : navigate("/playlistselector");
+            navigate("/playlistselector");
           }
         };
         window.addEventListener("message", messageHandler);
@@ -58,7 +64,7 @@ const SourceSelector = ({ source, destination, setSource, setDestination }) => {
     }
   };
 
-  const buttonData: IConvertInfo[] = [
+  const buttonData = [
     {
       name: "spotify",
       icon: faSpotify,
@@ -90,15 +96,15 @@ const SourceSelector = ({ source, destination, setSource, setDestination }) => {
   return (
     <Fragment>
       <div className="flex h-screen flex-col items-center justify-center bg-gray-900">
-        <h1>Step { source.index !== null ? 3 : 1 }</h1>
+        <h1>Step 1</h1>
         <p className="text-center text-white">
           Select a{" "}
-          {source.index !== null  ? "Destination" : "Source"}:
+          {source.index !== null && destination.index !== null ? "Destination" : "Source"}:
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center bg-gray-900">
           {buttonData.map((data) => (
             <SelectorButton
-              key={data.name as Key}
+              key={data.name}
               name={data.name}
               icon={data.icon}
               handleLogin={data.handleButtonClick}

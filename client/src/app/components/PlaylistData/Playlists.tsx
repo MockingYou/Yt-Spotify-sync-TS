@@ -6,18 +6,18 @@ import LinkButton from "../LinkButton";
 import PlaylistItem from "./PlaylistItem";
 import PlaylistSong from "./PlaylistSong"
 import { clampToRange, getPlaylists, getSongs } from "../../HelperFunctions/helperFunction";
+import PlaylistData from "../../services/PlaylistDataServices/PlaylistData";
 
-const Playlists = ({ source, destination }) => {
+const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
   const [sourcePlaylist, setSourcePlaylist] = useState(null);
   const [sourceLinkPlaylist, setSourceLinkPlaylist] = useState(null);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [filteredPlaylist, setFilteredPlaylist] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [playlistLink, setPlaylistLink] = useState("");
   const [playlistName, setPlaylistName] = useState("");
   const [linkItem, setLinkItem] = useState(null);
   let selectedPlaylists = [];
-
+  
   useEffect(() => {
     setFilteredPlaylist(sourcePlaylist);
   }, [sourcePlaylist]);
@@ -36,6 +36,19 @@ const Playlists = ({ source, destination }) => {
       });
     }
   };
+
+  const handleClick = () => {
+    getSongs(source.name, playlistLink)
+      .then((data) => {
+        console.log(typeof data.linkItem);
+        setLinkItem(data.linkItem);
+        setSourceLinkPlaylist(data.playlist)
+      })
+      .catch((error) => {
+        console.error("Error fetching songs:", error);
+      });
+  };
+  
 
   const loadPlaylist = async (sourceUrl: string, destinationUrl: string) => {
     const playlistLengthResponse = await axios(sourceUrl);
@@ -108,7 +121,7 @@ const Playlists = ({ source, destination }) => {
           </div>
           <div className="float-right">
             {/* <Button method={convertPlaylist} name="Choose destination" /> */}
-            <LinkButton link={"/sourceselector"} name="Choose destination" />
+            <LinkButton link={"/summary"} name="Choose destination" />
 
           </div>
         </div>
@@ -137,9 +150,9 @@ const Playlists = ({ source, destination }) => {
                 ))}
             </div>
             <div className="float-right">
-              <LinkButton link={"/sourceselector"} name="Choose destination" />
+              <LinkButton link={"/summary"} name="Choose destination" />
 
-              <Button method={() => getSongs(source.name, playlistLink, setSourceLinkPlaylist, setLinkItem)} name="Load from playlist" />
+              <Button method={handleClick} name="Load from playlist" />
             </div>
           </div>
           {loadingProgress < 100 && (
