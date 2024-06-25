@@ -9,14 +9,14 @@ import Summary from "./Pages/Summary";
 
 export default function App() {
   const [source, setSource] = useState({
-	  index: null,
-	  link: "",
-    name: ""
+    index: null,
+    link: "",
+    name: "",
   });
   const [destination, setDestination] = useState({
-	  index: null,
-	  link: "",
-    name: ""
+    index: null,
+    link: "",
+    name: "",
   });
   const [playlistLink, setPlaylistLink] = useState("");
   return (
@@ -25,21 +25,27 @@ export default function App() {
         <NavBar />
         <Routes>
           <Route element={<NotFound />} path="/*" />
-          <Route element={<Home
+          <Route
+            element={
+              <Home
                 source={source}
                 destination={destination}
                 setSource={setSource}
-                setDestination={setDestination} 
-            />} 
+                setDestination={setDestination}
+              />
+            }
             path="/"
           />
-          <Route element={<Home
+          <Route
+            element={
+              <Home
                 source={source}
                 destination={destination}
                 setSource={setSource}
-                setDestination={setDestination} 
-            />} 
-            path="/home" 
+                setDestination={setDestination}
+              />
+            }
+            path="/home"
           />
           <Route
             element={
@@ -58,18 +64,13 @@ export default function App() {
                 source={source}
                 destination={destination}
                 playlistLink={playlistLink}
-                setPlaylistLink={ setPlaylistLink }
+                setPlaylistLink={setPlaylistLink}
               />
             }
             path="/playlistselector"
           />
-          <Route 
-            element={
-              <Summary 
-                source={source}
-                playlistLink={playlistLink}
-              /> 
-            } 
+          <Route
+            element={<Summary source={source} playlistLink={playlistLink} />}
             path="/summary"
           />
         </Routes>

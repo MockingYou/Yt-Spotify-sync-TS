@@ -1,32 +1,29 @@
-import { calculatePopupPosition } from "../../HelperFunctions/helperFunction";
 import IConvertInfo from "./IConvertInfo";
 import Cookies from "js-cookie";
-
+import { calculatePopupPosition } from "../../HelperFunctions/helperFunction";
 const popupWidth = 600;
 const popupHeight = 900;
 
-export default class ConvertInfo implements IConvertInfo {
-    public icon: any;
-    public isSource?: boolean;
-    public isDestination?: boolean;
-    public direction?: { index: Number; link: String; name: String; token: String};
-
-    public get convertInfoObject(): IConvertInfo {
-        return {
-            icon: this.icon,
-            isSource: this.isSource,
-            isDestination: this.isDestination,
-            direction: this.direction,
-        };
-    }
-
-    public set convertInfoObject(value: IConvertInfo) {
-        this.icon = value.icon;
-        this.isSource = value.isSource;
-        this.isDestination = value.isDestination;
-        this.direction = value.direction;
-    }
-	
+export default class ConvertInfo {
+	private convertInfo: IConvertInfo;
+	constructor() {
+		this.convertInfo = {
+			handleButtonClick: () => {},
+			icon: "",
+			isSource: false,
+			isDestination: false,
+			source: {
+				index: null,
+				link: "",
+				name: "",
+			},
+			destination: {
+				index: null,
+				link: "",
+				name: "",
+			},
+		}
+	}
 	public handleButtonClick = (
 		index: number,
 		token: string,
@@ -50,7 +47,7 @@ export default class ConvertInfo implements IConvertInfo {
 				Cookies.set(`${providerName}Token`, data.token, {
 				  expires: 1 / 24,
 				});
-				this.direction.index !== null ? navigate("/summary") : navigate("/playlistselector");
+				this.convertInfo.source.index !== null ? navigate("/summary") : navigate("/playlistselector");
 			  }
 			};
 			window.addEventListener("message", messageHandler);
@@ -59,12 +56,25 @@ export default class ConvertInfo implements IConvertInfo {
 		  console.error(`Error during ${providerName} login:`, error);
 		}
 	  
-		if (this.direction.index === null) {
-		  this.direction = { index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName, token };
-		} else if (this.direction === null && index !== this.direction.index) {
-		  this.direction = { index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName, token };
+		if (this.convertInfo.source.index === null) {
+			this.convertInfo.source = { index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName }
+		//   setSource({ index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName });
+		} else if (this.convertInfo.destination === null && index !== this.convertInfo.source.index) {
+			this.convertInfo.destination = { index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName }
+		//   setDestination({ index, link: `http://localhost:8000/api/${providerName}/get-length/`, name: providerName });
 		} else {
-			this.direction = { index: null, link: "", name: "", token: "" };
+			this.convertInfo.source = {
+				index: null,
+				link: "",
+				name: ""
+			}
+			this.convertInfo.destination = {
+				index: null,
+				link: "",
+				name: ""
+			} 
+		//   setSource({});
+		//   setDestination({});
 		}
 	  };
 }

@@ -4,8 +4,12 @@ import LoadingBar from "../Loading/LoadingBar";
 import Button from "../Button";
 import LinkButton from "../LinkButton";
 import PlaylistItem from "./PlaylistItem";
-import PlaylistSong from "./PlaylistSong"
-import { clampToRange, getPlaylists, getSongs } from "../../HelperFunctions/helperFunction";
+import PlaylistSong from "./PlaylistSong";
+import {
+  clampToRange,
+  getPlaylists,
+  getSongs,
+} from "../../HelperFunctions/helperFunction";
 import PlaylistData from "../../services/PlaylistDataServices/PlaylistData";
 
 const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
@@ -17,19 +21,25 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
   const [playlistName, setPlaylistName] = useState("");
   const [linkItem, setLinkItem] = useState(null);
   let selectedPlaylists = [];
-  
+
   useEffect(() => {
     setFilteredPlaylist(sourcePlaylist);
   }, [sourcePlaylist]);
 
   const memoizedPlaylistSongs = useMemo(() => playlistSongs, [playlistSongs]);
-  const memoizedFilteredPlaylist = useMemo(() => filteredPlaylist, [filteredPlaylist]);
+  const memoizedFilteredPlaylist = useMemo(
+    () => filteredPlaylist,
+    [filteredPlaylist],
+  );
 
   const convertPlaylist = async () => {
     setPlaylistSongs([]);
     if (playlistLink) {
       const playlistId = playlistLink.split("=")[1];
-      loadPlaylist(`${source.link}/${playlistId}`, `${destination.link}/${playlistId}`);
+      loadPlaylist(
+        `${source.link}/${playlistId}`,
+        `${destination.link}/${playlistId}`,
+      );
     } else {
       selectedPlaylists.forEach((item) => {
         loadPlaylist(item.link, item.link);
@@ -42,13 +52,12 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
       .then((data) => {
         console.log(typeof data.linkItem);
         setLinkItem(data.linkItem);
-        setSourceLinkPlaylist(data.playlist)
+        setSourceLinkPlaylist(data.playlist);
       })
       .catch((error) => {
         console.error("Error fetching songs:", error);
       });
   };
-  
 
   const loadPlaylist = async (sourceUrl: string, destinationUrl: string) => {
     const playlistLengthResponse = await axios(sourceUrl);
@@ -87,7 +96,7 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
     const newSearchTerm = event.target.value;
     setPlaylistName(newSearchTerm);
     const filteredData = sourcePlaylist.filter((item) =>
-      item.name.toLowerCase().includes(newSearchTerm.toLowerCase())
+      item.name.toLowerCase().includes(newSearchTerm.toLowerCase()),
     );
     setFilteredPlaylist(filteredData);
   };
@@ -96,7 +105,10 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
     <Fragment>
       <div className="border-grey-200 flex justify-between rounded-lg border bg-gray-900">
         <div className="m-5 mt-2 flex max-h-[46rem] w-[42rem] flex-col rounded-3xl bg-gray-800 p-5 px-3 py-2 font-mono text-sm font-semibold text-white shadow-sm">
-          <Button method={() => getPlaylists(source.name, setSourcePlaylist)} name="Get from your playlists" />
+          <Button
+            method={() => getPlaylists(source.name, setSourcePlaylist)}
+            name="Get from your playlists"
+          />
           <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
             <input
               className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -122,7 +134,6 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
           <div className="float-right">
             {/* <Button method={convertPlaylist} name="Choose destination" /> */}
             <LinkButton link={"/summary"} name="Choose destination" />
-
           </div>
         </div>
 
@@ -138,7 +149,16 @@ const Playlists = ({ source, destination, playlistLink, setPlaylistLink }) => {
               onChange={(e) => setPlaylistLink(e.target.value)}
             ></input>
             <div className="z-100 max-h-[42rem] max-w-2xl flex-grow flex-col justify-center overflow-y-auto overflow-x-hidden">
-              {linkItem && <PlaylistItem selectPlaylist={() => {}} removePlaylist={() => {}} id={linkItem.id} name={linkItem.title} image={linkItem.image} source={""}  />}
+              {linkItem && (
+                <PlaylistItem
+                  selectPlaylist={() => {}}
+                  removePlaylist={() => {}}
+                  id={linkItem.id}
+                  name={linkItem.title}
+                  image={linkItem.image}
+                  source={""}
+                />
+              )}
               {sourceLinkPlaylist &&
                 sourceLinkPlaylist.map((item, index) => (
                   <PlaylistSong

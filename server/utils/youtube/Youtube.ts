@@ -4,7 +4,7 @@ import config from "../config.json";
 import AuthData from "../interfaces/AuthData";
 import Song from "../interfaces/songs/Song";
 import Token, { createToken } from "../interfaces/tokens/Token";
-
+import UserData from "../interfaces/UserData";
 import { checkFullName, normalizeString } from "../methods/filterSongs";
 dotenv.config();
 
@@ -15,9 +15,11 @@ export default class Youtube {
 	public isLogged: boolean = false;
 	private baseApiUrl: string = "https://www.googleapis.com/youtube/v3";
 	private youtube: ReturnType<typeof google.youtube>;
+	private googleOAuth2: any;
+
 	myAuthData: MyAuthData;
 	private defaultToken: Token = createToken({});
-
+	private youtubeTokens: Token | null = null;
 	constructor() {
 		this.myAuthData = {
 			clientId: process.env.CLIENT_ID_YOUTUBE || "",
@@ -36,6 +38,10 @@ export default class Youtube {
 			version: "v3",
 			auth: this.myAuthData.youtubeApi,
 		});
+		this.googleOAuth2 = google.oauth2({
+			version: "v2",
+			auth: this.myAuthData.youtubeApi,
+		});
 	}
 
 	public generateAuthUrl = (): string => {
@@ -45,28 +51,51 @@ export default class Youtube {
 		});
 	};
 
-	public getAuthToken = async (code: string): Promise<Token> => {
+	public getAuthToken = async (
+		code: string,
+	): Promise<{ token: Token; user: UserData }> => {
 		try {
 			const tokenResponse = await this.myAuthData.youtubeApi.getToken(
 				code,
 			);
-			const youtubeToken = tokenResponse.tokens.access_token as string;
-			console.log(`Successfully retrieved YouTube access token.`);
-			this.myAuthData.youtubeApi.setCredentials({
-				access_token: youtubeToken,
-			});
-			this.youtube = google.youtube({
-				version: "v3",
-				auth: this.myAuthData.youtubeApi,
-			});
-			this.myAuthData.token = {
-				access_token: youtubeToken,
+			const { access_token, refresh_token } = tokenResponse.tokens;
+			if (!access_token) {
+				throw new Error("Failed to retrieve access token");
+			}
+			console.log("Successfully retrieved YouTube access token.");
+
+			this.myAuthData.token = createToken({
+				access_token,
+				refresh_token,
 				token_source: "youtube_token",
+			});
+
+			this.myAuthData.youtubeApi.setCredentials({
+				access_token,
+				refresh_token,
+			});
+
+			const { data } = await this.getUserInfo();
+			const user: UserData = {
+				username: data.name,
+				email: data.email,
+				image: data.picture,
 			};
-			return this.myAuthData.token;
+
+			return { token: this.myAuthData.token, user };
 		} catch (error) {
 			console.error("Error retrieving YouTube access token:", error);
 			throw new Error("Failed to retrieve YouTube access token");
+		}
+	};
+
+	public getUserInfo = async (): Promise<any> => {
+		try {
+			const userInfoResponse = await this.googleOAuth2.userinfo.get();
+			return userInfoResponse;
+		} catch (error) {
+			console.error("Error retrieving Google user data:", error);
+			throw new Error("Failed to retrieve Google user data");
 		}
 	};
 
@@ -110,7 +139,6 @@ export default class Youtube {
 				name: playlist.snippet?.title,
 				images: playlist.snippet?.thumbnails?.default?.url,
 			}));
-			console.log("YouTube Playlists:", playlists);
 			return playlists;
 		} catch (error: any) {
 			console.error("Error fetching YouTube playlists:", error.message);
@@ -125,7 +153,7 @@ export default class Youtube {
 			} as youtube_v3.Params$Resource$Playlists$List);
 			const playlist: K | undefined = response.data.items?.[0];
 			if (playlist) {
-				console.log(playlist.snippet)
+				console.log(playlist.snippet);
 				return playlist.snippet.title;
 			} else {
 				console.log("Playlist not found or has no items.");
@@ -183,7 +211,7 @@ export default class Youtube {
 				typeof filter == "string"
 					? `${snippet?.title}`
 					: normalizeString(filter.artist);
-			const image = snippet?.thumbnails?.default?.url
+			const image = snippet?.thumbnails?.default?.url;
 			song = { track, artist, image };
 		} catch (error) {
 			console.error("Error extracting songs from YouTube:", error);
