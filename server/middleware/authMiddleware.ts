@@ -7,16 +7,19 @@ dotenv.config();
 
 const jwtSecret = process.env.JWT_SECRET!;
 
-export const getLoginCookies = (req: Request): string[] => {
-	return Object.keys(req.cookies).filter((cookieName) =>
-		cookieName.includes("Token"),
-	);
+export const getLoginCookies = (req: Request): { [key: string]: string } => {
+	return Object.keys(req.cookies)
+		.filter((cookieName) => cookieName.includes("Token"))
+		.reduce((acc, cookieName) => {
+			acc[cookieName] = req.cookies[cookieName];
+			return acc;
+		}, {} as { [key: string]: string });
 };
 
 export const triggerLogout = (req: Request, res: Response) => {
-	let loginTokens = getLoginCookies(req);
-	loginTokens.forEach((token: string) => {
-		res.clearCookie(token);
+	let loginCookies = getLoginCookies(req);
+	Object.keys(loginCookies).forEach((cookieName) => {
+		res.clearCookie(cookieName);
 	});
 };
 
@@ -25,16 +28,15 @@ export const authenticateToken = async (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const loginTokens = getLoginCookies(req);
-	console.log(loginTokens);
-	if (loginTokens.length === 0) {
+	const loginCookies = getLoginCookies(req);
+	if (Object.keys(loginCookies).length === 0) {
 		return res
 			.status(401)
 			.json({ error: "Authorization token is required" });
 	}
 
 	try {
-		loginTokens.forEach((token) => {
+		Object.values(loginCookies).forEach((token) => {
 			jwt.verify(token, jwtSecret) as {
 				token: Token;
 				user: any;

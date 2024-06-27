@@ -80,7 +80,7 @@ app.get(
 			const userData = await spotify.myAuthData.spotifyApi.getMe();
 			const userId = userData.body.id;
 			const limit = 50;
-			const playlistsData =
+			const playlistsData =	
 				await spotify.myAuthData.spotifyApi.getUserPlaylists(userId, {
 					limit,
 				});

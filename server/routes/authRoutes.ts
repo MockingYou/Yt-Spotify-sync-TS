@@ -47,7 +47,7 @@ router.get("/auth/google/callback", async (req, res) => {
 			username: '${escapedUsername}',
 			email: '${escapedEmail}',
 			image: '${escapedImage}',
-			message: 'Success! You can now close the window.'
+			message: 'Success logging with Youtube!'
 		  }, '*');
 		  window.close();
 		</script>
@@ -99,7 +99,7 @@ router.get("/auth/spotify/callback", async (req, res) => {
 			username: '${escapedUsername}',
 			email: '${escapedEmail}',
 			image: '${escapedImage}',
-			message: 'Success! You can now close the window.'
+			message: 'Success logging with Spotify!'
 		  }, '*');
 		  window.close();
 		</script>
